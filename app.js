@@ -15,6 +15,8 @@ const LIST_INITIAL    = 20;
 const LIST_INCREMENT  = 10;
 const AC_DEBOUNCE_MS  = 350;
 
+const API_TERRAINS = '/api/terrains';   // backend local
+
 const API_EXPORT_URL =
   'https://data.sports.gouv.fr/api/explore/v2.1/catalog/datasets/equipements-sportifs/exports/json' +
   '?where=' + encodeURIComponent('equip_type_famille="Boulodrome"') +
@@ -332,6 +334,47 @@ function placeSearchMarker(lat, lon, label) {
   searchMarker = L.marker([lat, lon], { icon: userIcon })
     .bindPopup(`<strong>${escapeHtml(label)}</strong>`)
     .addTo(map);
+}
+
+/* ===== USER TERRAINS API ===== */
+async function fetchUserTerrains() {
+  try {
+    const resp = await fetch(API_TERRAINS);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    return await resp.json();
+  } catch (e) {
+    console.warn('Terrains utilisateur indisponibles :', e);
+    return [];
+  }
+}
+
+async function saveUserTerrain(terrain) {
+  const resp = await fetch(API_TERRAINS, {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify(terrain)
+  });
+  if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+  return await resp.json();
+}
+
+// Migration one-shot : pousse les anciens terrains IndexedDB vers le serveur puis vide le store local
+async function migrateLocalTerrains(db) {
+  try {
+    const local = await dbGetAll(db, DB_USER_STORE);
+    if (!local.length) return;
+    console.log(`Migration : ${local.length} terrain(s) local → serveur`);
+    await Promise.all(local.map(t => saveUserTerrain(t).catch(() => {})));
+    await new Promise((res, rej) => {
+      const tx = db.transaction(DB_USER_STORE, 'readwrite');
+      tx.objectStore(DB_USER_STORE).clear();
+      tx.oncomplete = res;
+      tx.onerror    = () => rej(tx.error);
+    });
+    console.log('Migration terminée.');
+  } catch (e) {
+    console.warn('Migration impossible :', e);
+  }
 }
 
 /* ===== LOCATE ME ===== */
@@ -717,7 +760,7 @@ async function loadOrFetchTerrains(db, { forceRefresh = false } = {}) {
   }
 
   setSyncDate(lastSync);
-  const userTerrains = await dbGetAll(db, DB_USER_STORE);
+  const userTerrains = await fetchUserTerrains();
   allTerrains        = official.concat(userTerrains);
   filteredTerrains   = filterTerrains(allTerrains);
   renderTerrains(filteredTerrains);
@@ -797,6 +840,9 @@ async function init() {
   try { db = await openDB(); }
   catch (e) { showLoading('Erreur IndexedDB : ' + e.message); return; }
 
+  // Migration one-shot des anciens terrains IndexedDB → serveur
+  await migrateLocalTerrains(db);
+
   const geoPromise = tryGeolocate();
 
   try { await loadOrFetchTerrains(db); }
@@ -857,7 +903,7 @@ async function init() {
     const submitBtn = addForm.querySelector('button[type=submit]');
     submitBtn.disabled = true;
     try {
-      await dbPut(db, DB_USER_STORE, terrain);
+      await saveUserTerrain(terrain);
       allTerrains.push(terrain);
       if (filterTerrains([terrain]).length) {
         filteredTerrains.push(terrain);
