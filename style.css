@@ -65,6 +65,30 @@ html, body {
   border-radius: 8px 0 0 8px;
 }
 
+/* Locate button */
+#locate-btn {
+  border: none;
+  background: transparent;
+  padding: 0 11px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  color: #555;
+  border-left: 1px solid #eee;
+  transition: background .15s, color .15s;
+  flex-shrink: 0;
+}
+#locate-btn:hover  { background: #f5f5f5; color: #2980b9; }
+#locate-btn.locating {
+  color: #2980b9;
+  animation: pulse-locate 1s ease-in-out infinite alternate;
+}
+@keyframes pulse-locate {
+  from { opacity: 1; }
+  to   { opacity: .35; }
+}
+#locate-btn:disabled { cursor: wait; color: #aaa; }
+
 /* Filter button */
 #filter-btn {
   position: relative;

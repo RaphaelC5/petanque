@@ -112,6 +112,7 @@ const searchForm      = $('search-form');
 const searchInput     = $('search-input');
 const searchBtn       = $('search-btn');
 const searchError     = $('search-error');
+const locateBtn       = $('locate-btn');
 const filterBtn       = $('filter-btn');
 const filterBadge     = $('filter-badge');
 const filterPanel     = $('filter-panel');
@@ -332,6 +333,41 @@ function placeSearchMarker(lat, lon, label) {
     .bindPopup(`<strong>${escapeHtml(label)}</strong>`)
     .addTo(map);
 }
+
+/* ===== LOCATE ME ===== */
+locateBtn.addEventListener('click', async () => {
+  if (!navigator.geolocation) { showError('Géolocalisation non supportée par ce navigateur'); return; }
+  locateBtn.disabled = true;
+  locateBtn.classList.add('locating');
+  try {
+    const pos = await new Promise((resolve, reject) =>
+      navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 10000, maximumAge: 60000 })
+    );
+    const { latitude: lat, longitude: lon } = pos.coords;
+    placeUserMarker(lat, lon);
+    map.setView([lat, lon], LOCAL_ZOOM);
+    // Reverse-geocode to fill the search input
+    try {
+      const addr = await reverseGeocode(lat, lon);
+      const label = [addr.adresse, addr.cp, addr.ville].filter(Boolean).join(', ') || addr.display_name;
+      searchInput.value = label;
+      placeSearchMarker(lat, lon, label);
+    } catch (_) {
+      searchInput.value = `${lat.toFixed(5)}, ${lon.toFixed(5)}`;
+      placeSearchMarker(lat, lon, 'Ma position');
+    }
+  } catch (err) {
+    const msgs = {
+      1: 'Accès à la position refusé.',
+      2: 'Position indisponible.',
+      3: 'Délai de géolocalisation dépassé.'
+    };
+    showError(msgs[err.code] || 'Erreur de géolocalisation');
+  } finally {
+    locateBtn.disabled = false;
+    locateBtn.classList.remove('locating');
+  }
+});
 
 /* ===== AUTOCOMPLETE ===== */
 let acTimer   = null;
