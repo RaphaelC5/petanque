@@ -496,22 +496,22 @@ function filterTerrains(terrains) {
 }
 
 function readFiltersFromDOM() {
-  activeFilters.types   = new Set([...$('[name="ftype"]:checked')].map(el => el.value));
-  activeFilters.natures = new Set([...$('[name="fnature"]:checked')].map(el => el.value));
+  activeFilters.types   = new Set([...$$('[name="ftype"]:checked')].map(el => el.value));
+  activeFilters.natures = new Set([...$$('[name="fnature"]:checked')].map(el => el.value));
   activeFilters.publicOnly = $('filter-public').checked;
   activeFilters.libreOnly  = $('filter-libre').checked;
 }
 
-function $checked(sel) { return document.querySelectorAll(sel); }
-
-function applyAndRender() {
+function applyAndRender({ closePanel = false } = {}) {
   readFiltersFromDOM();
   updateFilterBadge();
   filteredTerrains = filterTerrains(allTerrains);
   renderTerrains(filteredTerrains);
   if (!listView.classList.contains('hidden')) refreshList();
-  filterPanel.classList.add('hidden');
-  filterBtn.setAttribute('aria-expanded', 'false');
+  if (closePanel) {
+    filterPanel.classList.add('hidden');
+    filterBtn.setAttribute('aria-expanded', 'false');
+  }
 }
 
 filterBtn.addEventListener('click', () => {
@@ -519,13 +519,22 @@ filterBtn.addEventListener('click', () => {
   filterBtn.setAttribute('aria-expanded', String(open));
 });
 
-filterApplyBtn.addEventListener('click', applyAndRender);
+// Live filtering : chaque case cochée/décochée applique immédiatement
+filterPanel.querySelectorAll('input[type="checkbox"]').forEach(el => {
+  el.addEventListener('change', () => applyAndRender());
+});
+
+// "Appliquer" ferme le panneau (filtres déjà actifs en temps réel)
+filterApplyBtn.addEventListener('click', () => {
+  filterPanel.classList.add('hidden');
+  filterBtn.setAttribute('aria-expanded', 'false');
+});
 
 filterResetBtn.addEventListener('click', () => {
   $$('[name="ftype"], [name="fnature"]').forEach(el => el.checked = false);
   $('filter-public').checked = false;
   $('filter-libre').checked  = false;
-  applyAndRender();
+  applyAndRender({ closePanel: true });
 });
 
 /* ===== LIST VIEW ===== */
