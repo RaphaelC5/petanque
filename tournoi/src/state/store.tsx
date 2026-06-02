@@ -8,7 +8,7 @@ import {
   useRef,
   type ReactNode,
 } from 'react';
-import type { AppState, Player, Tournament } from '../types';
+import type { AppState, Player, QuickMatch, Tournament } from '../types';
 import {
   emptyState,
   exportToFile,
@@ -23,6 +23,8 @@ type Action =
   | { type: 'removePlayer'; id: string }
   | { type: 'upsertTournament'; tournament: Tournament }
   | { type: 'removeTournament'; id: string }
+  | { type: 'addQuickMatch'; match: QuickMatch }
+  | { type: 'removeQuickMatch'; id: string }
   | { type: 'replaceState'; state: AppState };
 
 function reducer(state: AppState, action: Action): AppState {
@@ -57,6 +59,16 @@ function reducer(state: AppState, action: Action): AppState {
         ...state,
         tournaments: state.tournaments.filter((t) => t.id !== action.id),
       };
+    case 'addQuickMatch':
+      return {
+        ...state,
+        quickMatches: [action.match, ...(state.quickMatches ?? [])],
+      };
+    case 'removeQuickMatch':
+      return {
+        ...state,
+        quickMatches: (state.quickMatches ?? []).filter((m) => m.id !== action.id),
+      };
     case 'replaceState':
       return action.state;
     default:
@@ -71,6 +83,8 @@ interface Ctx {
   removePlayer: (id: string) => void;
   upsertTournament: (t: Tournament) => void;
   removeTournament: (id: string) => void;
+  addQuickMatch: (m: QuickMatch) => void;
+  removeQuickMatch: (id: string) => void;
   replaceState: (s: AppState) => void;
   exportData: () => void;
 }
@@ -151,6 +165,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     upsertTournament: (tournament) =>
       dispatch({ type: 'upsertTournament', tournament }),
     removeTournament: (id) => dispatch({ type: 'removeTournament', id }),
+    addQuickMatch: (match) => dispatch({ type: 'addQuickMatch', match }),
+    removeQuickMatch: (id) => dispatch({ type: 'removeQuickMatch', id }),
     replaceState: (s) => dispatch({ type: 'replaceState', state: s }),
     exportData: () => exportToFile(state),
   };

@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useStore } from './state/store';
 import { importFromFile } from './storage/persistence';
 import { HomeView } from './components/views/HomeView';
@@ -6,6 +6,9 @@ import { PlayersView } from './components/views/PlayersView';
 import { ConstitutionView } from './components/views/ConstitutionView';
 import { DashboardView } from './components/views/DashboardView';
 import { Toast } from './components/common';
+import { MiniChat } from './social/MiniChat';
+import { TerrainMapButton } from './components/TerrainMapButton';
+import { GlobalRankingPanel } from './components/GlobalRankingPanel';
 
 export type View =
   | { name: 'home' }
@@ -17,7 +20,15 @@ export function App() {
   const { state, replaceState, exportData } = useStore();
   const [view, setView] = useState<View>({ name: 'home' });
   const [toast, setToast] = useState<string | null>(null);
+  const [rankOpen, setRankOpen] = useState(() =>
+    typeof window === 'undefined' ? true : window.innerWidth > 1100,
+  );
   const fileInput = useRef<HTMLInputElement>(null);
+
+  // Décale le contenu quand le rail du classement est ouvert (grands écrans).
+  useEffect(() => {
+    document.body.dataset.rank = rankOpen ? 'open' : 'closed';
+  }, [rankOpen]);
 
   const flash = (msg: string) => {
     setToast(msg);
@@ -97,7 +108,10 @@ export function App() {
         )}
       </main>
 
+      <GlobalRankingPanel open={rankOpen} setOpen={setRankOpen} flash={flash} />
       <Toast message={toast} />
+      <TerrainMapButton />
+      <MiniChat />
     </>
   );
 }

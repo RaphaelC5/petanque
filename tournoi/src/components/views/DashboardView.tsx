@@ -7,11 +7,11 @@ import { PouleSection } from '../PouleSection';
 import { BracketView } from '../BracketView';
 import { MatchRow } from '../MatchRow';
 import { ScoreModal } from '../ScoreModal';
-import { Confetti } from '../common';
+import { Confetti, EditableTeamName } from '../common';
 import type { View } from '../../App';
 import type { Match, Tournament } from '../../types';
 
-type Tab = 'poules' | 'bracket' | 'matchs';
+type Tab = 'poules' | 'bracket' | 'matchs' | 'equipes';
 
 export function DashboardView({
   tournament,
@@ -48,6 +48,12 @@ export function DashboardView({
     }
     setEditing(null);
   };
+
+  const renameTeam = (teamId: string, nom: string) =>
+    upsertTournament({
+      ...tournament,
+      teams: tournament.teams.map((t) => (t.id === teamId ? { ...t, nom } : t)),
+    });
 
   const qualifPerPoule = tournament.poules.length
     ? Math.ceil((tournament.taillePhaseFinale ?? 4) / tournament.poules.length)
@@ -95,6 +101,9 @@ export function DashboardView({
             <button className={`tab ${tab === 'matchs' ? 'active' : ''}`} onClick={() => setTab('matchs')}>
               📋 Tous les matchs
             </button>
+            <button className={`tab ${tab === 'equipes' ? 'active' : ''}`} onClick={() => setTab('equipes')}>
+              🏷️ Équipes
+            </button>
           </div>
 
           {tab === 'poules' &&
@@ -136,6 +145,29 @@ export function DashboardView({
                   onClick={m.teamAId && m.teamBId ? () => setEditing(m) : undefined}
                 />
               ))}
+            </div>
+          )}
+
+          {tab === 'equipes' && (
+            <div className="grid grid-cards">
+              {tournament.teams.map((tm) => (
+                <div key={tm.id} className="card">
+                  <strong style={{ fontSize: '1.1rem' }}>
+                    <EditableTeamName name={tm.nom} onRename={(nom) => renameTeam(tm.id, nom)} />
+                  </strong>
+                  <div className="mt">
+                    {tm.playerIds.map((id) => (
+                      <div key={id} className="draw-slot">
+                        <span>{players.get(id)?.emoji ?? '🧑'}</span>
+                        <span style={{ fontWeight: 700 }}>{players.get(id)?.nom ?? '—'}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+              {tournament.teams.length === 0 && (
+                <div className="empty">Pas encore d'équipes.</div>
+              )}
             </div>
           )}
         </div>

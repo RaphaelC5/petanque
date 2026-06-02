@@ -1,6 +1,6 @@
 // Petits composants UI réutilisables.
 
-import { type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { roleMeta } from '../engine/game';
 import type { Player, Role } from '../types';
@@ -36,6 +36,63 @@ export function Modal({
         {children}
       </motion.div>
     </div>
+  );
+}
+
+/** Nom d'équipe éditable en place (clic sur le crayon → input). */
+export function EditableTeamName({
+  name,
+  onRename,
+}: {
+  name: string;
+  onRename: (nom: string) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [val, setVal] = useState(name);
+
+  useEffect(() => setVal(name), [name]);
+
+  const commit = () => {
+    const v = val.trim();
+    if (v && v !== name) onRename(v);
+    else setVal(name);
+    setEditing(false);
+  };
+
+  if (editing) {
+    return (
+      <input
+        className="team-name-input"
+        value={val}
+        autoFocus
+        onChange={(e) => setVal(e.target.value)}
+        onBlur={commit}
+        onClick={(e) => e.stopPropagation()}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') commit();
+          if (e.key === 'Escape') {
+            setVal(name);
+            setEditing(false);
+          }
+        }}
+      />
+    );
+  }
+
+  return (
+    <span className="editable-team-name">
+      {name}{' '}
+      <button
+        className="rename-btn"
+        title="Renommer l'équipe"
+        onClick={(e) => {
+          e.stopPropagation();
+          setEditing(true);
+        }}
+      >
+        ✏️
+      </button>
+    </span>
   );
 }
 

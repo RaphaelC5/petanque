@@ -43,6 +43,38 @@ describe('buildBracket — byes', () => {
     expect(placed).toContain('b');
     expect(placed).toContain('c');
   });
+
+  it('nombre impair → AUCUN champion avant qu’un match soit joué', () => {
+    // 3 équipes : 'a' passe en finale via un bye, mais b/c n'ont pas joué.
+    // La finale ne doit PAS être résolue → pas de champion prématuré.
+    const m3 = buildBracket(['a', 'b', 'c']);
+    expect(bracketChampion(m3)).toBeNull();
+    const final3 = m3.find((x) => x.round === 1)!;
+    expect(final3.status).toBe('a_jouer');
+
+    // 5 équipes : pareil, aucun champion tant que la finale n'est pas jouée.
+    const m5 = buildBracket(['a', 'b', 'c', 'd', 'e']);
+    expect(bracketChampion(m5)).toBeNull();
+    // 7 équipes (bracket de 8, un seul bye)
+    const m7 = buildBracket(['a', 'b', 'c', 'd', 'e', 'f', 'g']);
+    expect(bracketChampion(m7)).toBeNull();
+  });
+
+  it('3 équipes → champion seulement après la finale jouée', () => {
+    let m = buildBracket(['a', 'b', 'c']);
+    // le match b vs c (round 0, deux équipes présentes) doit être joué
+    const realMatch = m.find((x) => x.round === 0 && x.teamAId && x.teamBId)!;
+    expect(bracketChampion(m)).toBeNull();
+    m = applyBracketResult(m, realMatch.id, 13, 7);
+    // la finale a maintenant ses deux équipes, mais n'est pas encore jouée
+    const final = m.find((x) => x.round === 1)!;
+    expect(final.teamAId).toBeTruthy();
+    expect(final.teamBId).toBeTruthy();
+    expect(bracketChampion(m)).toBeNull();
+    // on joue la finale → champion désigné
+    m = applyBracketResult(m, final.id, 13, 9);
+    expect(bracketChampion(m)).toBe(m.find((x) => x.round === 1)!.winnerId);
+  });
 });
 
 describe('applyBracketResult — avancement', () => {

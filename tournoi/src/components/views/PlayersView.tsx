@@ -1,12 +1,13 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import { useStore } from '../../state/store';
 import { PETANQUE } from '../../engine/game';
 import { uid } from '../../engine/util';
-import { RoleBadge } from '../common';
+import { Modal, RoleBadge } from '../common';
+import { isCam, isCommeIlPeut } from '../../data/easterEggs';
 import type { Player, Role } from '../../types';
 
-const EMOJIS = ['🧔', '👩', '👨‍🦰', '🧑', '👵', '👴', '🧑‍🦱', '👱', '🤠', '🧓', '👲', '🙋'];
+const EMOJIS = ['🧔', '👩', '👨‍🦰', '🧑', '👵', '👴', '🧑‍🦱', '👱', '🤠', '🧓', '👲', '🙋', '🕳️'];
 
 export function PlayersView({ flash }: { flash: (m: string) => void }) {
   const { state, addPlayer, updatePlayer, removePlayer } = useStore();
@@ -14,15 +15,25 @@ export function PlayersView({ flash }: { flash: (m: string) => void }) {
   const [role, setRole] = useState<Role>('mixte');
   const [emoji, setEmoji] = useState(EMOJIS[0]);
   const [editId, setEditId] = useState<string | null>(null);
+  const [camPopup, setCamPopup] = useState(false);
+
+  // « Comme il peut » : pour certains, pas de rôle assumé — tout est mixte.
+  const commeIlPeut = isCommeIlPeut(nom);
+  const effectiveRole: Role = commeIlPeut ? 'mixte' : role;
+
+  const pickRole = (r: Role) => {
+    setRole(r);
+    if (isCam(nom) && r === 'tireur') setCamPopup(true);
+  };
 
   const submit = () => {
     const name = nom.trim();
     if (!name) return;
     if (editId) {
-      updatePlayer({ id: editId, nom: name, role, emoji });
+      updatePlayer({ id: editId, nom: name, role: effectiveRole, emoji });
       flash('Joueur mis à jour');
     } else {
-      addPlayer({ id: uid('p'), nom: name, role, emoji });
+      addPlayer({ id: uid('p'), nom: name, role: effectiveRole, emoji });
       flash(`${name} ajouté·e 👍`);
     }
     setNom('');
@@ -56,17 +67,23 @@ export function PlayersView({ flash }: { flash: (m: string) => void }) {
 
         <div className="field">
           <label>Rôle</label>
-          <div className="chips">
-            {PETANQUE.roles.map((r) => (
-              <button
-                key={r.value}
-                className={`chip ${role === r.value ? 'selected' : ''}`}
-                onClick={() => setRole(r.value)}
-              >
-                {r.emoji} {r.label}
-              </button>
-            ))}
-          </div>
+          {commeIlPeut ? (
+            <div className="chips">
+              <button className="chip selected">🤷 comme il peut</button>
+            </div>
+          ) : (
+            <div className="chips">
+              {PETANQUE.roles.map((r) => (
+                <button
+                  key={r.value}
+                  className={`chip ${role === r.value ? 'selected' : ''}`}
+                  onClick={() => pickRole(r.value)}
+                >
+                  {r.emoji} {r.label}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="field">
@@ -150,6 +167,21 @@ export function PlayersView({ flash }: { flash: (m: string) => void }) {
           ))}
         </div>
       )}
+
+      <AnimatePresence>
+        {camPopup && (
+          <Modal title="🫳 Minute…" onClose={() => setCamPopup(false)}>
+            <p style={{ fontSize: '1.3rem', fontWeight: 800, textAlign: 'center', margin: '0.5rem 0 1rem' }}>
+              chalag pas par contre
+            </p>
+            <div className="row" style={{ justifyContent: 'center' }}>
+              <button className="btn btn-primary" onClick={() => setCamPopup(false)}>
+                C'est noté 😅
+              </button>
+            </div>
+          </Modal>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

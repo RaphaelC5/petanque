@@ -5,6 +5,7 @@ import { roleMeta } from '../../engine/game';
 import { buildTeams, computeTeamSizes, teamFromPlayers } from '../../engine/teams';
 import { generateMatches } from '../../engine/tournament';
 import { DrawAnimation } from '../DrawAnimation';
+import { EditableTeamName } from '../common';
 import type { View } from '../../App';
 import type { Player, Team, Tournament } from '../../types';
 
@@ -36,6 +37,9 @@ export function ConstitutionView({
 
   // --- mode manuel ---
   const [manual, setManual] = useState<string[][]>(() => sizes.map(() => []));
+  const [manualNames, setManualNames] = useState<string[]>(() =>
+    sizes.map((_, i) => `Équipe ${i + 1}`),
+  );
   const [activeTeam, setActiveTeam] = useState(0);
   const assigned = new Set(manual.flat());
   const pool = participants.filter((p) => !assigned.has(p.id));
@@ -44,6 +48,9 @@ export function ConstitutionView({
     setDrawTeams(buildTeams(participants, tournament.format, { random: true }));
     setDrawKey((k) => k + 1);
   };
+
+  const renameDrawTeam = (id: string, nom: string) =>
+    setDrawTeams((prev) => (prev ? prev.map((t) => (t.id === id ? { ...t, nom } : t)) : prev));
 
   const validate = (teams: Team[]) => {
     const ready = generateMatches({ ...tournament, teams });
@@ -68,7 +75,7 @@ export function ConstitutionView({
     const byId = new Map(participants.map((p) => [p.id, p]));
     const teams = manual.map((ids, i) =>
       teamFromPlayers(
-        `Équipe ${i + 1}`,
+        manualNames[i]?.trim() || `Équipe ${i + 1}`,
         ids.map((id) => byId.get(id)!).filter(Boolean),
       ),
     );
@@ -137,6 +144,7 @@ export function ConstitutionView({
                 players={participants}
                 soundOn={soundOn}
                 onDone={() => validate(drawTeams)}
+                onRename={renameDrawTeam}
               />
               <div className="row mt" style={{ justifyContent: 'center' }}>
                 <button className="btn btn-ghost" onClick={launchDraw}>
@@ -182,7 +190,18 @@ export function ConstitutionView({
                   }}
                 >
                   <div className="row between">
-                    <strong>Équipe {i + 1}</strong>
+                    <strong>
+                      <EditableTeamName
+                        name={manualNames[i] ?? `Équipe ${i + 1}`}
+                        onRename={(nom) =>
+                          setManualNames((prev) => {
+                            const next = [...prev];
+                            next[i] = nom;
+                            return next;
+                          })
+                        }
+                      />
+                    </strong>
                     <span className="muted">
                       {ids.length}/{sizes[i]} {sizes[i] === 3 ? '(triplette)' : '(doublette)'}
                     </span>

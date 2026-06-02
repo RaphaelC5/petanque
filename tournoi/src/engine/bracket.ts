@@ -97,23 +97,28 @@ export function buildBracket(seededTeamIds: string[]): Match[] {
   return all;
 }
 
-/** Résout les matchs où une seule équipe est présente (bye) en cascade. */
+/**
+ * Résout les byes du premier tour uniquement. Un bye n'est légitime qu'au
+ * round 0 : une équipe y est seule (l'autre slot était vide dès la construction)
+ * et passe d'office au tour suivant. Aux tours suivants, un slot vide signifie
+ * « en attente du vainqueur d'un match amont non encore joué » — surtout PAS un
+ * bye (sinon on déclarerait un champion avant d'avoir joué le moindre match).
+ * Comme `nextPowerOfTwo` garantit toujours plus d'équipes que de slots/2, les
+ * byes ne se propagent jamais au-delà du round 0.
+ */
 function resolveByes(matches: Match[]): void {
   const byId = new Map(matches.map((m) => [m.id, m]));
-  // Traiter dans l'ordre des tours
-  const sorted = matches.slice().sort((a, b) => (a.round ?? 0) - (b.round ?? 0));
-  for (const m of sorted) {
+  for (const m of matches) {
+    if ((m.round ?? 0) !== 0) continue; // byes uniquement au premier tour
     if (m.status === 'termine') continue;
     const aEmpty = m.teamAId == null;
     const bEmpty = m.teamBId == null;
-    if (aEmpty && bEmpty) continue; // les deux vides, en attente
-    if (aEmpty !== bEmpty) {
-      // un seul présent → qualification d'office
-      const winner = (m.teamAId ?? m.teamBId)!;
-      m.winnerId = winner;
-      m.status = 'termine';
-      propagateWinner(m, winner, byId);
-    }
+    if (aEmpty === bEmpty) continue; // deux présents (match réel) ou deux vides
+    // un seul présent → qualification d'office
+    const winner = (m.teamAId ?? m.teamBId)!;
+    m.winnerId = winner;
+    m.status = 'termine';
+    propagateWinner(m, winner, byId);
   }
 }
 
@@ -127,17 +132,8 @@ function propagateWinner(
   if (!next) return;
   if (m.nextSlot === 'A') next.teamAId = winnerId;
   else next.teamBId = winnerId;
-  // Si le match suivant devient un bye, le résoudre aussi
-  if (next.status !== 'termine') {
-    const aEmpty = next.teamAId == null;
-    const bEmpty = next.teamBId == null;
-    if (aEmpty !== bEmpty) {
-      const w = (next.teamAId ?? next.teamBId)!;
-      next.winnerId = w;
-      next.status = 'termine';
-      propagateWinner(next, w, byId);
-    }
-  }
+  // On ne résout jamais le match suivant comme un bye : un slot encore vide y
+  // attend le vainqueur d'un match amont qui reste à jouer.
 }
 
 /**

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { computePlayerRanking, POINTS_VICTOIRE } from '../ranking';
+import { computeGlobalRanking, computePlayerRanking, POINTS_VICTOIRE } from '../ranking';
 import { closeMatch } from '../tournament';
-import type { Match, Player, Team, Tournament } from '../../types';
+import type { AppState, Match, Player, Team, Tournament } from '../../types';
 
 const players: Player[] = [
   { id: 'p1', nom: 'Alice', role: 'tireur' },
@@ -59,6 +59,45 @@ describe('computePlayerRanking', () => {
     // A et B ont 3 points chacun. A : GA = 13-0+11-13 = +11 ; B : -11
     expect(ranking[0].playerId === 'p1' || ranking[0].playerId === 'p2').toBe(true);
     expect(ranking[0].goalAverage).toBeGreaterThan(ranking[3].goalAverage);
+  });
+});
+
+describe('computeGlobalRanking', () => {
+  function baseState(over: Partial<AppState>): AppState {
+    return { players, tournaments: [], quickMatches: [], version: 1, ...over };
+  }
+
+  it('cumule un tournoi et un match amical', () => {
+    const t = baseTournament([
+      { id: 'm1', stage: 'poule', teamAId: 'A', teamBId: 'B', scoreA: 13, scoreB: 6, status: 'termine', winnerId: 'A', pouleId: 'P' },
+    ]);
+    const state = baseState({
+      tournaments: [t],
+      quickMatches: [
+        { id: 'q1', sideAPlayerIds: ['p1'], sideBPlayerIds: ['p3'], scoreA: 13, scoreB: 10, createdAt: 0 },
+      ],
+    });
+    const ranking = computeGlobalRanking(state);
+    const alice = ranking.find((r) => r.playerId === 'p1')!;
+    // tournoi : +3 (victoire A) ; match amical : +3 (victoire p1)
+    expect(alice.points).toBe(2 * POINTS_VICTOIRE);
+    expect(alice.matchsJoues).toBe(2);
+    const chloe = ranking.find((r) => r.playerId === 'p3')!;
+    expect(chloe.points).toBe(0);
+    expect(chloe.defaites).toBe(2);
+  });
+
+  it('ignore les matchs de bracket non joués (byes sans score)', () => {
+    const t = baseTournament([
+      { id: 'b1', stage: 'bracket', teamAId: 'A', teamBId: null, scoreA: null, scoreB: null, status: 'termine', winnerId: 'A', round: 0, slot: 0 },
+    ]);
+    const ranking = computeGlobalRanking(baseState({ tournaments: [t] }));
+    // un bye (sans score) ne rapporte aucun point → personne classé
+    expect(ranking).toHaveLength(0);
+  });
+
+  it('liste vide quand aucun match joué', () => {
+    expect(computeGlobalRanking(baseState({}))).toHaveLength(0);
   });
 });
 

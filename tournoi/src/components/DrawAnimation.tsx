@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { roleMeta } from '../engine/game';
-import { Confetti } from './common';
+import { isDam } from '../data/easterEggs';
+import { Confetti, EditableTeamName } from './common';
 import type { Player, Team } from '../types';
 
 interface Reveal {
@@ -10,31 +11,30 @@ interface Reveal {
 }
 
 /**
- * Tirage type tombola : les joueurs sont révélés un par un (un par équipe à
- * chaque tour), avec un effet de roulette qui ralentit avant de « tomber »
- * dans une équipe. Confettis à la fin.
+ * Tirage type tombola : les joueurs sont révélés un par un, équipe par équipe
+ * (on complète une équipe avant de passer à la suivante), avec un effet de
+ * roulette qui ralentit avant de « tomber » dans une équipe. Confettis à la fin.
  */
 export function DrawAnimation({
   teams,
   players,
   soundOn,
   onDone,
+  onRename,
 }: {
   teams: Team[];
   players: Player[];
   soundOn: boolean;
   onDone: () => void;
+  onRename?: (teamId: string, nom: string) => void;
 }) {
   const byId = useMemo(() => new Map(players.map((p) => [p.id, p])), [players]);
 
   const order = useMemo<Reveal[]>(() => {
-    const max = Math.max(...teams.map((t) => t.playerIds.length), 0);
     const out: Reveal[] = [];
-    for (let slot = 0; slot < max; slot++) {
-      teams.forEach((t, teamIdx) => {
-        if (t.playerIds[slot]) out.push({ teamIdx, playerId: t.playerIds[slot] });
-      });
-    }
+    teams.forEach((t, teamIdx) => {
+      t.playerIds.forEach((playerId) => out.push({ teamIdx, playerId }));
+    });
     return out;
   }, [teams]);
 
@@ -147,7 +147,14 @@ export function DrawAnimation({
               }
             >
               <h4>
-                {team.nom}{' '}
+                {onRename && finished ? (
+                  <EditableTeamName
+                    name={team.nom}
+                    onRename={(nom) => onRename(team.id, nom)}
+                  />
+                ) : (
+                  team.nom
+                )}{' '}
                 {team.playerIds.length === 3 ? '(triplette)' : '(doublette)'}
               </h4>
               {team.playerIds.map((pid, slot) => {
@@ -184,6 +191,10 @@ export function DrawAnimation({
               {team.desequilibree && finished && (
                 <div className="badge-desequilibre">⚠️ équipe déséquilibrée</div>
               )}
+              {finished &&
+                team.playerIds.some((pid) => isDam(byId.get(pid)?.nom ?? '')) && (
+                  <div className="badge-desequilibre">😬 Ouh dommage avec Damyenks</div>
+                )}
             </motion.div>
           );
         })}

@@ -13,6 +13,7 @@ function normalize(raw: unknown): AppState {
   return {
     players: Array.isArray(s.players) ? s.players : [],
     tournaments: Array.isArray(s.tournaments) ? s.tournaments : [],
+    quickMatches: Array.isArray(s.quickMatches) ? s.quickMatches : [],
     version: s.version ?? STATE_VERSION,
   };
 }

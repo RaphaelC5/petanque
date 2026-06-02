@@ -12,21 +12,20 @@
 //   3. nombre de victoires            — décroissant
 //   4. points marqués                 — décroissant
 //   5. nom (ordre alphabétique)       — pour un tri stable
+//
+// Deux portées de classement :
+//   • `computePlayerRanking`  → un seul tournoi (panneau du tableau de bord)
+//   • `computeGlobalRanking`  → tous tournois + matchs amicaux cumulés
 // ============================================================================
 
-import type { Player, PlayerRankingRow, Tournament } from '../types';
+import type { AppState, Player, PlayerRankingRow } from '../types';
 
 export const POINTS_VICTOIRE = 3;
 
-export function computePlayerRanking(
-  tournament: Tournament,
-  players: Player[],
-): PlayerRankingRow[] {
-  const byId = new Map(players.map((p) => [p.id, p]));
-  const teamPlayers = new Map(tournament.teams.map((t) => [t.id, t.playerIds]));
-  const rows = new Map<string, PlayerRankingRow>();
+type Rows = Map<string, PlayerRankingRow>;
 
-  const ensure = (pid: string): PlayerRankingRow => {
+function makeEnsure(rows: Rows, byId: Map<string, Player>) {
+  return (pid: string): PlayerRankingRow => {
     let r = rows.get(pid);
     if (!r) {
       const p = byId.get(pid);
@@ -46,39 +45,40 @@ export function computePlayerRanking(
     }
     return r;
   };
+}
 
-  // initialiser tous les participants (même sans match joué)
-  for (const t of tournament.teams) for (const pid of t.playerIds) ensure(pid);
-
-  for (const m of tournament.matches) {
-    if (m.status !== 'termine' || m.teamAId == null || m.teamBId == null) continue;
-    if (m.scoreA == null || m.scoreB == null) continue;
-    const aPlayers = teamPlayers.get(m.teamAId) ?? [];
-    const bPlayers = teamPlayers.get(m.teamBId) ?? [];
-    const aWon = m.winnerId === m.teamAId;
-
-    for (const pid of aPlayers) {
-      const r = ensure(pid);
-      r.matchsJoues++;
-      r.pointsPour += m.scoreA;
-      r.pointsContre += m.scoreB;
-      if (aWon) {
-        r.victoires++;
-        r.points += POINTS_VICTOIRE;
-      } else r.defaites++;
-    }
-    for (const pid of bPlayers) {
-      const r = ensure(pid);
-      r.matchsJoues++;
-      r.pointsPour += m.scoreB;
-      r.pointsContre += m.scoreA;
-      if (!aWon) {
-        r.victoires++;
-        r.points += POINTS_VICTOIRE;
-      } else r.defaites++;
-    }
+/** Comptabilise un match terminé (deux camps de joueurs) dans les lignes. */
+function tally(
+  ensure: (pid: string) => PlayerRankingRow,
+  aPlayers: string[],
+  bPlayers: string[],
+  scoreA: number,
+  scoreB: number,
+): void {
+  const aWon = scoreA > scoreB;
+  for (const pid of aPlayers) {
+    const r = ensure(pid);
+    r.matchsJoues++;
+    r.pointsPour += scoreA;
+    r.pointsContre += scoreB;
+    if (aWon) {
+      r.victoires++;
+      r.points += POINTS_VICTOIRE;
+    } else r.defaites++;
   }
+  for (const pid of bPlayers) {
+    const r = ensure(pid);
+    r.matchsJoues++;
+    r.pointsPour += scoreB;
+    r.pointsContre += scoreA;
+    if (!aWon) {
+      r.victoires++;
+      r.points += POINTS_VICTOIRE;
+    } else r.defaites++;
+  }
+}
 
+function finalize(rows: Rows): PlayerRankingRow[] {
   const out = [...rows.values()];
   for (const r of out) r.goalAverage = r.pointsPour - r.pointsContre;
   return out.sort(
@@ -89,4 +89,63 @@ export function computePlayerRanking(
       b.pointsPour - a.pointsPour ||
       a.nom.localeCompare(b.nom),
   );
+}
+
+export function computePlayerRanking(
+  tournament: AppState['tournaments'][number],
+  players: Player[],
+): PlayerRankingRow[] {
+  const byId = new Map(players.map((p) => [p.id, p]));
+  const teamPlayers = new Map(tournament.teams.map((t) => [t.id, t.playerIds]));
+  const rows: Rows = new Map();
+  const ensure = makeEnsure(rows, byId);
+
+  // initialiser tous les participants (même sans match joué)
+  for (const t of tournament.teams) for (const pid of t.playerIds) ensure(pid);
+
+  for (const m of tournament.matches) {
+    if (m.status !== 'termine' || m.teamAId == null || m.teamBId == null) continue;
+    if (m.scoreA == null || m.scoreB == null) continue;
+    tally(
+      ensure,
+      teamPlayers.get(m.teamAId) ?? [],
+      teamPlayers.get(m.teamBId) ?? [],
+      m.scoreA,
+      m.scoreB,
+    );
+  }
+
+  return finalize(rows);
+}
+
+/**
+ * Classement général : cumule les points de TOUS les tournois et de TOUS les
+ * matchs amicaux. Seuls les joueurs ayant disputé au moins un match y figurent.
+ */
+export function computeGlobalRanking(state: AppState): PlayerRankingRow[] {
+  const byId = new Map(state.players.map((p) => [p.id, p]));
+  const rows: Rows = new Map();
+  const ensure = makeEnsure(rows, byId);
+
+  for (const t of state.tournaments) {
+    const teamPlayers = new Map(t.teams.map((tm) => [tm.id, tm.playerIds]));
+    for (const m of t.matches) {
+      if (m.status !== 'termine' || m.teamAId == null || m.teamBId == null) continue;
+      if (m.scoreA == null || m.scoreB == null) continue;
+      tally(
+        ensure,
+        teamPlayers.get(m.teamAId) ?? [],
+        teamPlayers.get(m.teamBId) ?? [],
+        m.scoreA,
+        m.scoreB,
+      );
+    }
+  }
+
+  for (const q of state.quickMatches ?? []) {
+    if (q.scoreA === q.scoreB) continue; // pas de nul en pétanque
+    tally(ensure, q.sideAPlayerIds, q.sideBPlayerIds, q.scoreA, q.scoreB);
+  }
+
+  return finalize(rows);
 }

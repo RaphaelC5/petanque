@@ -6,6 +6,8 @@
   "description": "App de tournois de pétanque entre amis — Semaine des Copains Marseille",
   "scripts": {
     "dev": "vite",
+    "sync:carte": "mkdir -p public/carte && cp ../index.html ../app.js ../style.css public/carte/",
+    "prebuild": "npm run sync:carte",
     "build": "tsc && vite build",
     "preview": "vite preview",
     "test": "vitest run",

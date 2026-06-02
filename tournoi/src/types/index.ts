@@ -88,9 +88,25 @@ export interface Tournament {
   pointsCible: number;
 }
 
+/**
+ * Match « rapide » hors tournoi : deux camps de joueurs, un score, c'est tout.
+ * Sert uniquement à alimenter le classement général.
+ */
+export interface QuickMatch {
+  id: string;
+  sideAPlayerIds: string[];
+  sideBPlayerIds: string[];
+  scoreA: number;
+  scoreB: number;
+  createdAt: number;
+  label?: string;
+}
+
 export interface AppState {
   players: Player[];
   tournaments: Tournament[];
+  /** Matchs amicaux hors tournoi (comptent dans le classement général). */
+  quickMatches: QuickMatch[];
   version: number;
 }
 

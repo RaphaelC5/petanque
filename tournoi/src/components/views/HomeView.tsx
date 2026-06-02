@@ -5,6 +5,7 @@ import { PETANQUE } from '../../engine/game';
 import { demoPlayers } from '../../data/demo';
 import { CreateTournamentModal } from '../CreateTournamentModal';
 import { tournamentWinner } from '../../engine/tournament';
+import { ChambrageFeed } from '../../social/ChambrageFeed';
 import type { View } from '../../App';
 
 const MODE_LABEL: Record<string, string> = {
@@ -43,9 +44,10 @@ export function HomeView({
       <section className="card" style={{ marginBottom: '1.2rem' }}>
         <div className="row between">
           <div>
-            <h1 style={{ fontSize: '1.7rem' }}>🎯 Allez, on tire ou on pointe ?</h1>
+            <h1 style={{ fontSize: '1.7rem' }}>À tous ceux qui aime la vie</h1>
             <p className="muted" style={{ margin: 0 }}>
-              Organise tes tournois de pétanque entre copains, à la marseillaise.
+              on va professionnaliser les tournois pour pas qu'il y ai de chalag sur le vrai
+              vainqueur de la semaine
             </p>
           </div>
           <button className="btn btn-sun" onClick={() => setCreating(true)}>
@@ -132,6 +134,8 @@ export function HomeView({
           </AnimatePresence>
         </div>
       )}
+
+      <ChambrageFeed flash={flash} />
 
       <AnimatePresence>
         {creating && (

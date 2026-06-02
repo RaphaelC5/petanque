@@ -8,6 +8,7 @@ export const STATE_VERSION = 1;
 export const emptyState: AppState = {
   players: [],
   tournaments: [],
+  quickMatches: [],
   version: STATE_VERSION,
 };
 
@@ -19,6 +20,7 @@ export function loadState(): AppState {
     return {
       players: parsed.players ?? [],
       tournaments: parsed.tournaments ?? [],
+      quickMatches: parsed.quickMatches ?? [],
       version: parsed.version ?? STATE_VERSION,
     };
   } catch (e) {
@@ -62,6 +64,7 @@ export function importFromFile(file: File): Promise<AppState> {
         resolve({
           players: parsed.players,
           tournaments: parsed.tournaments,
+          quickMatches: parsed.quickMatches ?? [],
           version: parsed.version ?? STATE_VERSION,
         });
       } catch (e) {
