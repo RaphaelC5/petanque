@@ -4,6 +4,8 @@ import { computeGlobalRanking } from '../engine/ranking';
 import { roleMeta } from '../engine/game';
 import { useStore } from '../state/store';
 import { QuickMatchModal } from './QuickMatchModal';
+import { QuickMatchesModal } from './QuickMatchesModal';
+import type { QuickMatch } from '../types';
 
 const MEDALS = ['🥇', '🥈', '🥉'];
 
@@ -22,8 +24,11 @@ export function GlobalRankingPanel({
 }) {
   const { state } = useStore();
   const [adding, setAdding] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [editing, setEditing] = useState<QuickMatch | null>(null);
 
   const rows = computeGlobalRanking(state);
+  const nbMatches = state.quickMatches?.length ?? 0;
 
   return (
     <>
@@ -66,6 +71,14 @@ export function GlobalRankingPanel({
             >
               ➕ Ajouter un match
             </button>
+            {nbMatches > 0 && (
+              <button
+                className="btn btn-ghost btn-sm global-ranking-add"
+                onClick={() => setHistoryOpen(true)}
+              >
+                📋 Matchs joués ({nbMatches})
+              </button>
+            )}
 
             <div className="global-ranking-list">
               {rows.length === 0 ? (
@@ -100,7 +113,27 @@ export function GlobalRankingPanel({
       </AnimatePresence>
 
       <AnimatePresence>
+        {historyOpen && (
+          <QuickMatchesModal
+            onClose={() => setHistoryOpen(false)}
+            onEdit={(m) => {
+              setHistoryOpen(false);
+              setEditing(m);
+            }}
+            flash={flash}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
         {adding && <QuickMatchModal onClose={() => setAdding(false)} flash={flash} />}
+        {editing && (
+          <QuickMatchModal
+            existing={editing}
+            onClose={() => setEditing(null)}
+            flash={flash}
+          />
+        )}
       </AnimatePresence>
     </>
   );

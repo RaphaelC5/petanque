@@ -24,6 +24,7 @@ type Action =
   | { type: 'upsertTournament'; tournament: Tournament }
   | { type: 'removeTournament'; id: string }
   | { type: 'addQuickMatch'; match: QuickMatch }
+  | { type: 'updateQuickMatch'; match: QuickMatch }
   | { type: 'removeQuickMatch'; id: string }
   | { type: 'replaceState'; state: AppState };
 
@@ -64,6 +65,13 @@ function reducer(state: AppState, action: Action): AppState {
         ...state,
         quickMatches: [action.match, ...(state.quickMatches ?? [])],
       };
+    case 'updateQuickMatch':
+      return {
+        ...state,
+        quickMatches: (state.quickMatches ?? []).map((m) =>
+          m.id === action.match.id ? action.match : m,
+        ),
+      };
     case 'removeQuickMatch':
       return {
         ...state,
@@ -84,6 +92,7 @@ interface Ctx {
   upsertTournament: (t: Tournament) => void;
   removeTournament: (id: string) => void;
   addQuickMatch: (m: QuickMatch) => void;
+  updateQuickMatch: (m: QuickMatch) => void;
   removeQuickMatch: (id: string) => void;
   replaceState: (s: AppState) => void;
   exportData: () => void;
@@ -166,6 +175,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       dispatch({ type: 'upsertTournament', tournament }),
     removeTournament: (id) => dispatch({ type: 'removeTournament', id }),
     addQuickMatch: (match) => dispatch({ type: 'addQuickMatch', match }),
+    updateQuickMatch: (match) => dispatch({ type: 'updateQuickMatch', match }),
     removeQuickMatch: (id) => dispatch({ type: 'removeQuickMatch', id }),
     replaceState: (s) => dispatch({ type: 'replaceState', state: s }),
     exportData: () => exportToFile(state),

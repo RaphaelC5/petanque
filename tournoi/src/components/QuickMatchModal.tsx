@@ -6,24 +6,31 @@ import { useStore } from '../state/store';
 import type { Player, QuickMatch } from '../types';
 
 /**
- * Création d'un match amical hors tournoi : on choisit les joueurs de chaque
- * camp, on saisit le score, et ça alimente le classement général.
+ * Création / édition d'un match amical hors tournoi : on choisit les joueurs
+ * de chaque camp, on saisit le score, et ça alimente le classement général.
+ * Si `existing` est fourni, le formulaire est pré-rempli et on met à jour.
  */
 export function QuickMatchModal({
   onClose,
   flash,
+  existing,
 }: {
   onClose: () => void;
   flash: (m: string) => void;
+  existing?: QuickMatch;
 }) {
-  const { state, addQuickMatch } = useStore();
+  const { state, addQuickMatch, updateQuickMatch } = useStore();
   const players = state.players;
 
-  const [sideA, setSideA] = useState<Set<string>>(new Set());
-  const [sideB, setSideB] = useState<Set<string>>(new Set());
-  const [scoreA, setScoreA] = useState('');
-  const [scoreB, setScoreB] = useState('');
-  const [label, setLabel] = useState('');
+  const [sideA, setSideA] = useState<Set<string>>(
+    () => new Set(existing?.sideAPlayerIds ?? []),
+  );
+  const [sideB, setSideB] = useState<Set<string>>(
+    () => new Set(existing?.sideBPlayerIds ?? []),
+  );
+  const [scoreA, setScoreA] = useState(existing ? String(existing.scoreA) : '');
+  const [scoreB, setScoreB] = useState(existing ? String(existing.scoreB) : '');
+  const [label, setLabel] = useState(existing?.label ?? '');
 
   const sorted = useMemo(
     () => [...players].sort((a, b) => a.nom.localeCompare(b.nom)),
@@ -58,16 +65,21 @@ export function QuickMatchModal({
   const save = () => {
     if (!valid) return;
     const match: QuickMatch = {
-      id: uid('qm'),
+      id: existing?.id ?? uid('qm'),
       sideAPlayerIds: [...sideA],
       sideBPlayerIds: [...sideB],
       scoreA: a,
       scoreB: b,
-      createdAt: Date.now(),
+      createdAt: existing?.createdAt ?? Date.now(),
       label: label.trim() || undefined,
     };
-    addQuickMatch(match);
-    flash('Match enregistré ✅ classement mis à jour');
+    if (existing) {
+      updateQuickMatch(match);
+      flash('Match modifié ✅ classement mis à jour');
+    } else {
+      addQuickMatch(match);
+      flash('Match enregistré ✅ classement mis à jour');
+    }
     onClose();
   };
 
@@ -90,7 +102,7 @@ export function QuickMatchModal({
   };
 
   return (
-    <Modal title="➕ Ajouter un match" onClose={onClose} wide>
+    <Modal title={existing ? '✏️ Modifier le match' : '➕ Ajouter un match'} onClose={onClose} wide>
       {players.length === 0 ? (
         <div className="empty">
           <span className="emoji">🧑‍🤝‍🧑</span>
@@ -162,7 +174,7 @@ export function QuickMatchModal({
               Annuler
             </button>
             <button className="btn btn-primary" disabled={!valid} onClick={save}>
-              Enregistrer le match
+              {existing ? 'Enregistrer les modifications' : 'Enregistrer le match'}
             </button>
           </div>
         </>

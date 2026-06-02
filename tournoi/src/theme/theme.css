@@ -1058,3 +1058,65 @@ select:focus {
     grid-template-columns: 1fr;
   }
 }
+
+/* ---------- Historique des matchs amicaux ---------- */
+.qm-history {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+.qm-history-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas:
+    'teams actions'
+    'meta  actions';
+  align-items: center;
+  gap: 0.1rem 0.6rem;
+  padding: 0.6rem 0.7rem;
+  border: 1px solid var(--gris-pale);
+  border-radius: var(--radius-sm);
+  background: var(--blanc);
+}
+.qm-history-teams {
+  grid-area: teams;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.qm-history-side {
+  flex: 1;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+.qm-history-side.right {
+  text-align: right;
+}
+.qm-history-side.win {
+  color: var(--vert);
+}
+.qm-history-score {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 1.05rem;
+  white-space: nowrap;
+}
+.qm-history-score .sep {
+  color: var(--gris);
+}
+.qm-history-score b.win {
+  color: var(--vert);
+}
+.qm-history-meta {
+  grid-area: meta;
+  font-size: 0.72rem;
+  color: var(--gris);
+}
+.qm-history-actions {
+  grid-area: actions;
+  display: flex;
+  gap: 0.35rem;
+}
