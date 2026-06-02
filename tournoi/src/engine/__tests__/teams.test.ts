@@ -107,4 +107,12 @@ describe('buildTeams — équilibrage', () => {
     const tailles = teams.map((t) => t.playerIds.length).sort();
     expect(tailles).toEqual([2, 3]);
   });
+
+  it('useRoles=false : aucun déséquilibre, tous placés (hors pétanque)', () => {
+    const players = mkPlayers(['tireur', 'tireur', 'tireur', 'tireur']);
+    const teams = buildTeams(players, 4, { rng: seededRng(9), useRoles: false });
+    expect(teams).toHaveLength(1);
+    expect(teams[0].playerIds).toHaveLength(4);
+    expect(teams.every((t) => t.desequilibree === false)).toBe(true);
+  });
 });

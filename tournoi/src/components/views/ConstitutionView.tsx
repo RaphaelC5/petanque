@@ -26,6 +26,8 @@ export function ConstitutionView({
     [state.players, tournament.participantIds],
   );
   const target = teamTarget(tournament);
+  // Les rôles (tireur/pointeur/mixte) et le déséquilibre ne valent qu'en pétanque.
+  const useRoles = tournament.game === 'petanque';
   const sizes = useMemo(
     () => computeTeamSizes(participants.length, target),
     [participants.length, target],
@@ -46,7 +48,7 @@ export function ConstitutionView({
   const pool = participants.filter((p) => !assigned.has(p.id));
 
   const launchDraw = () => {
-    setDrawTeams(buildTeams(participants, target, { random: true }));
+    setDrawTeams(buildTeams(participants, target, { random: true, useRoles }));
     setDrawKey((k) => k + 1);
   };
 
@@ -78,6 +80,7 @@ export function ConstitutionView({
       teamFromPlayers(
         manualNames[i]?.trim() || `Équipe ${i + 1}`,
         ids.map((id) => byId.get(id)!).filter(Boolean),
+        useRoles,
       ),
     );
     validate(teams);
@@ -120,8 +123,10 @@ export function ConstitutionView({
           {!drawTeams ? (
             <div className="empty">
               <span className="emoji">🎰</span>
-              Prêt pour le tirage au sort ? On équilibre tireurs et pointeurs
-              automatiquement.
+              Prêt pour le tirage au sort ?{' '}
+              {useRoles
+                ? 'On équilibre tireurs et pointeurs automatiquement.'
+                : 'Les équipes sont tirées au hasard.'}
               <div className="mt row" style={{ justifyContent: 'center' }}>
                 <label className="row" style={{ gap: '0.4rem' }}>
                   <input
@@ -145,6 +150,7 @@ export function ConstitutionView({
                 soundOn={soundOn}
                 onDone={() => validate(drawTeams)}
                 onRename={renameDrawTeam}
+                showRoles={useRoles}
               />
               <div className="row mt" style={{ justifyContent: 'center' }}>
                 <button className="btn btn-ghost" onClick={launchDraw}>
@@ -166,7 +172,7 @@ export function ConstitutionView({
             <div className="chips">
               {pool.map((p) => (
                 <button key={p.id} className="chip" onClick={() => assignToActive(p.id)}>
-                  {p.emoji ?? '🧑'} {p.nom} {roleMeta(p.role).emoji}
+                  {p.emoji ?? '🧑'} {p.nom} {useRoles ? roleMeta(p.role).emoji : ''}
                 </button>
               ))}
               {pool.length === 0 && <span className="muted">Tous les joueurs sont placés ✅</span>}
@@ -210,7 +216,9 @@ export function ConstitutionView({
                     <div key={p.id} className="draw-slot">
                       <span>{p.emoji ?? '🧑'}</span>
                       <span style={{ fontWeight: 700 }}>{p.nom}</span>
-                      <span style={{ marginLeft: 'auto' }}>{roleMeta(p.role).emoji}</span>
+                      {useRoles && (
+                        <span style={{ marginLeft: 'auto' }}>{roleMeta(p.role).emoji}</span>
+                      )}
                       <button
                         className="btn btn-sm btn-danger"
                         onClick={(e) => {

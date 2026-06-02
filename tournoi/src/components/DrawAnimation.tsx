@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { roleMeta } from '../engine/game';
+import { teamSizeLabel } from '../engine/teams';
 import { isDam } from '../data/easterEggs';
 import { Confetti, EditableTeamName } from './common';
 import type { Player, Team } from '../types';
@@ -21,12 +22,15 @@ export function DrawAnimation({
   soundOn,
   onDone,
   onRename,
+  showRoles = true,
 }: {
   teams: Team[];
   players: Player[];
   soundOn: boolean;
   onDone: () => void;
   onRename?: (teamId: string, nom: string) => void;
+  /** Affiche les rôles (tireur/pointeur) — pétanque uniquement. */
+  showRoles?: boolean;
 }) {
   const byId = useMemo(() => new Map(players.map((p) => [p.id, p])), [players]);
 
@@ -155,12 +159,12 @@ export function DrawAnimation({
                 ) : (
                   team.nom
                 )}{' '}
-                {team.playerIds.length === 3 ? '(triplette)' : '(doublette)'}
+                ({teamSizeLabel(team.playerIds.length)})
               </h4>
               {team.playerIds.map((pid, slot) => {
                 const player = byId.get(pid);
                 const isRevealed = slot < revealedCount;
-                const meta = player ? roleMeta(player.role) : null;
+                const meta = player && showRoles ? roleMeta(player.role) : null;
                 return (
                   <AnimatePresence key={pid}>
                     {isRevealed && player ? (

@@ -76,6 +76,11 @@ export function computeTeamSizes(nbPlayers: number, format: TeamFormat | number)
 interface BuildOptions {
   random?: boolean; // mélange aléatoire (tirage)
   rng?: Rng;
+  /**
+   * Tient compte des rôles (tireur/pointeur/mixte) pour équilibrer les équipes
+   * et calculer le déséquilibre. Réservé à la pétanque (défaut : true).
+   */
+  useRoles?: boolean;
 }
 
 /** Une équipe est déséquilibrée si elle concentre 2+ tireurs ou 2+ pointeurs. */
@@ -99,8 +104,27 @@ export function buildTeams(
   opts: BuildOptions = {},
 ): Team[] {
   const rng = opts.rng ?? defaultRng;
+  const useRoles = opts.useRoles ?? true;
   const sizes = computeTeamSizes(players.length, format);
   if (sizes.length === 0) return [];
+
+  const noms = opts.random ? shuffle(NOMS_EQUIPES, rng) : NOMS_EQUIPES;
+
+  // Sans gestion des rôles (sports hors pétanque) : simple répartition.
+  if (!useRoles) {
+    const pool = opts.random ? shuffle(players, rng) : players.slice();
+    const buckets: Player[][] = sizes.map(() => []);
+    let k = 0;
+    for (let i = 0; i < buckets.length; i++) {
+      for (let j = 0; j < sizes[i]; j++) buckets[i].push(pool[k++]);
+    }
+    return buckets.map((bucket, i) => ({
+      id: uid('team'),
+      nom: noms[i % noms.length] ?? `Équipe ${i + 1}`,
+      playerIds: bucket.map((p) => p.id),
+      desequilibree: false,
+    }));
+  }
 
   const order = (g: Player[]) => (opts.random ? shuffle(g, rng) : g.slice());
   const tireurs = order(players.filter((p) => p.role === 'tireur'));
@@ -139,10 +163,9 @@ export function buildTeams(
     buckets[best].push(player);
   }
 
-  const nomsMelanges = opts.random ? shuffle(NOMS_EQUIPES, rng) : NOMS_EQUIPES;
   return buckets.map((bucket, i) => ({
     id: uid('team'),
-    nom: nomsMelanges[i % nomsMelanges.length] ?? `Équipe ${i + 1}`,
+    nom: noms[i % noms.length] ?? `Équipe ${i + 1}`,
     playerIds: bucket.map((p) => p.id),
     desequilibree: isUnbalanced(bucket.map((p) => p.role)),
   }));
@@ -155,12 +178,15 @@ function placementCost(bucket: Player[], role: Role): number {
   return sameRole * 10; // pénalise fortement le doublon de rôle
 }
 
-/** Recompose les équipes en gardant les joueurs assignés manuellement. */
-export function teamFromPlayers(nom: string, players: Player[]): Team {
+/**
+ * Recompose les équipes en gardant les joueurs assignés manuellement.
+ * `useRoles` (défaut true, pétanque) calcule le déséquilibre ; sinon false.
+ */
+export function teamFromPlayers(nom: string, players: Player[], useRoles = true): Team {
   return {
     id: uid('team'),
     nom,
     playerIds: players.map((p) => p.id),
-    desequilibree: isUnbalanced(players.map((p) => p.role)),
+    desequilibree: useRoles ? isUnbalanced(players.map((p) => p.role)) : false,
   };
 }

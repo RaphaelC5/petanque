@@ -15,6 +15,7 @@ export function RankingPanel({
 }) {
   const [open, setOpen] = useState(true);
   const rows = computePlayerRanking(tournament, players);
+  const showRoles = tournament.game === 'petanque';
 
   return (
     <div className="card ranking-panel ranking-collapsible" data-open={open}>
@@ -38,7 +39,8 @@ export function RankingPanel({
               <span className="pos">{MEDALS[i] ?? i + 1}</span>
               <div>
                 <div className="name">
-                  {roleMeta(r.role).emoji} {r.nom}
+                  {showRoles ? `${roleMeta(r.role).emoji} ` : ''}
+                  {r.nom}
                 </div>
                 <div className="meta">
                   {r.victoires}V · {r.defaites}D · GA{' '}
