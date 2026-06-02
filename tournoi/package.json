@@ -13,7 +13,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "serve": "npm run build && node server.cjs",
-    "start": "node server.cjs"
+    "start": "node server.cjs",
+    "partage": "bash partage.sh"
   },
   "dependencies": {
     "better-sqlite3": "^9.6.0",
