@@ -1,0 +1,690 @@
+/* ============================================================
+   Thème « Semaine des Copains Marseille »
+   Bleu Méditerranée + ocre/soleil + blanc cassé. Mobile-first.
+   ============================================================ */
+
+:root {
+  --bleu: #0a6ca8;
+  --bleu-clair: #1192d4;
+  --bleu-pale: #e3f1fb;
+  --ocre: #f0a04b;
+  --soleil: #f7c948;
+  --terre: #e4572e;
+  --creme: #fdf6ec;
+  --blanc: #ffffff;
+  --encre: #16344b;
+  --gris: #6b7c8a;
+  --gris-pale: #e7edf1;
+  --vert: #2a9d6e;
+  --ombre: 0 4px 18px rgba(16, 52, 75, 0.12);
+  --ombre-forte: 0 10px 32px rgba(16, 52, 75, 0.22);
+  --radius: 16px;
+  --radius-sm: 10px;
+  --max: 1240px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  color: var(--encre);
+  background:
+    radial-gradient(1200px 600px at 90% -10%, rgba(247, 201, 72, 0.25), transparent 60%),
+    radial-gradient(900px 500px at -10% 10%, rgba(17, 146, 212, 0.18), transparent 55%),
+    var(--creme);
+  background-attachment: fixed;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0 0 0.4em;
+  line-height: 1.1;
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+}
+
+/* ---------- Boutons ---------- */
+.btn {
+  border: none;
+  border-radius: 999px;
+  padding: 0.7em 1.3em;
+  font-weight: 700;
+  background: var(--gris-pale);
+  color: var(--encre);
+  transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+}
+.btn:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.03);
+}
+.btn:active {
+  transform: translateY(0);
+}
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+.btn-primary {
+  background: linear-gradient(135deg, var(--bleu), var(--bleu-clair));
+  color: #fff;
+  box-shadow: var(--ombre);
+}
+.btn-sun {
+  background: linear-gradient(135deg, var(--ocre), var(--soleil));
+  color: #5a3a09;
+  box-shadow: var(--ombre);
+}
+.btn-ghost {
+  background: transparent;
+  border: 2px solid var(--gris-pale);
+}
+.btn-danger {
+  background: #fde3dc;
+  color: var(--terre);
+}
+.btn-sm {
+  padding: 0.4em 0.8em;
+  font-size: 0.85rem;
+}
+.btn-block {
+  width: 100%;
+  justify-content: center;
+}
+
+/* ---------- En-tête appli ---------- */
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: linear-gradient(120deg, var(--bleu), var(--bleu-clair));
+  color: #fff;
+  padding: 0.7rem clamp(0.8rem, 3vw, 2rem);
+  box-shadow: var(--ombre);
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+}
+.app-header .brand {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  cursor: pointer;
+}
+.app-header .brand .logo {
+  font-size: 1.6rem;
+}
+.app-header .brand .title {
+  font-size: clamp(1rem, 2.6vw, 1.35rem);
+}
+.app-header .brand .subtitle {
+  font-size: 0.72rem;
+  opacity: 0.85;
+  font-weight: 600;
+}
+.app-header .spacer {
+  flex: 1;
+}
+.header-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.header-actions .btn {
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  backdrop-filter: blur(4px);
+}
+.header-actions .btn:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+/* ---------- Conteneur ---------- */
+.container {
+  max-width: var(--max);
+  margin: 0 auto;
+  padding: clamp(1rem, 3vw, 2rem);
+}
+
+/* ---------- Cartes ---------- */
+.card {
+  background: var(--blanc);
+  border-radius: var(--radius);
+  box-shadow: var(--ombre);
+  padding: 1.1rem 1.2rem;
+}
+.card-hover {
+  transition: transform 0.14s ease, box-shadow 0.14s ease;
+}
+.card-hover:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--ombre-forte);
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.3rem;
+  margin: 1.4rem 0 0.8rem;
+}
+
+/* ---------- Grilles ---------- */
+.grid {
+  display: grid;
+  gap: 1rem;
+}
+.grid-cards {
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+}
+
+/* ---------- Badges rôle ---------- */
+.role-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3em;
+  padding: 0.2em 0.6em;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+/* ---------- Champs ---------- */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 0.9rem;
+}
+.field label {
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--gris);
+}
+input[type='text'],
+input[type='number'],
+select {
+  font: inherit;
+  padding: 0.6em 0.8em;
+  border: 2px solid var(--gris-pale);
+  border-radius: var(--radius-sm);
+  background: #fff;
+  color: var(--encre);
+  outline: none;
+  transition: border-color 0.12s;
+}
+input:focus,
+select:focus {
+  border-color: var(--bleu-clair);
+}
+
+/* ---------- Pastilles de sélection (chips) ---------- */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.chip {
+  border: 2px solid var(--gris-pale);
+  background: #fff;
+  border-radius: 999px;
+  padding: 0.45em 0.9em;
+  font-weight: 700;
+  font-size: 0.9rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  transition: all 0.12s;
+}
+.chip.selected {
+  border-color: var(--bleu);
+  background: var(--bleu-pale);
+  color: var(--bleu);
+}
+.chip.option {
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  border-radius: var(--radius-sm);
+  padding: 0.7em 1em;
+  min-width: 150px;
+}
+.chip.option .opt-title {
+  font-size: 1rem;
+}
+.chip.option .opt-desc {
+  font-size: 0.75rem;
+  color: var(--gris);
+  font-weight: 500;
+}
+.chip.option.selected .opt-desc {
+  color: var(--bleu);
+}
+
+/* ---------- Modale ---------- */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(16, 52, 75, 0.55);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  z-index: 50;
+}
+.modal {
+  background: var(--creme);
+  border-radius: var(--radius);
+  box-shadow: var(--ombre-forte);
+  width: min(640px, 100%);
+  max-height: 90vh;
+  overflow: auto;
+  padding: 1.4rem;
+}
+.modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+.modal-close {
+  border: none;
+  background: var(--gris-pale);
+  border-radius: 999px;
+  width: 34px;
+  height: 34px;
+  font-size: 1.1rem;
+}
+
+/* ---------- États vides ---------- */
+.empty {
+  text-align: center;
+  padding: 2.5rem 1rem;
+  color: var(--gris);
+}
+.empty .emoji {
+  font-size: 3rem;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+/* ---------- Dashboard layout ---------- */
+.dashboard {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 1.2rem;
+  align-items: start;
+}
+.ranking-panel {
+  position: sticky;
+  top: 80px;
+}
+@media (max-width: 880px) {
+  .dashboard {
+    grid-template-columns: 1fr;
+  }
+  .ranking-panel {
+    position: static;
+  }
+  .ranking-collapsible[data-open='false'] .ranking-body {
+    display: none;
+  }
+}
+
+/* ---------- Classement ---------- */
+.rank-row {
+  display: grid;
+  grid-template-columns: 28px 1fr auto;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.4rem;
+  border-radius: var(--radius-sm);
+}
+.rank-row + .rank-row {
+  border-top: 1px solid var(--gris-pale);
+}
+.rank-row .pos {
+  font-weight: 800;
+  color: var(--gris);
+  text-align: center;
+}
+.rank-row.podium-1 {
+  background: linear-gradient(90deg, rgba(247, 201, 72, 0.3), transparent);
+}
+.rank-row.podium-1 .pos {
+  color: var(--ocre);
+}
+.rank-row .name {
+  font-weight: 700;
+}
+.rank-row .meta {
+  font-size: 0.72rem;
+  color: var(--gris);
+}
+.rank-row .pts {
+  font-weight: 800;
+  font-size: 1.05rem;
+  color: var(--bleu);
+}
+.rank-row .ga {
+  font-size: 0.72rem;
+  color: var(--gris);
+  text-align: right;
+}
+
+/* ---------- Onglets ---------- */
+.tabs {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+.tab {
+  border: none;
+  background: #fff;
+  border-radius: 999px;
+  padding: 0.5em 1.1em;
+  font-weight: 700;
+  box-shadow: var(--ombre);
+  color: var(--gris);
+}
+.tab.active {
+  background: var(--bleu);
+  color: #fff;
+}
+
+/* ---------- Tableau poule ---------- */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+.table th,
+.table td {
+  padding: 0.5rem 0.6rem;
+  text-align: center;
+}
+.table th {
+  font-size: 0.72rem;
+  color: var(--gris);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.table td.name,
+.table th.name {
+  text-align: left;
+}
+.table tbody tr {
+  border-top: 1px solid var(--gris-pale);
+}
+.table tbody tr.qualif {
+  background: rgba(42, 157, 110, 0.1);
+}
+
+/* ---------- Matchs ---------- */
+.match {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.7rem 0.9rem;
+  background: #fff;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--ombre);
+  margin-bottom: 0.6rem;
+}
+.match .side {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+.match .side.right {
+  text-align: right;
+  align-items: flex-end;
+}
+.match .side .tname {
+  font-weight: 700;
+}
+.match .side .players {
+  font-size: 0.72rem;
+  color: var(--gris);
+}
+.match .side.winner .tname {
+  color: var(--vert);
+}
+.match .center {
+  text-align: center;
+}
+.match .score {
+  font-weight: 800;
+  font-size: 1.2rem;
+  font-variant-numeric: tabular-nums;
+}
+.match .vs {
+  color: var(--gris);
+  font-size: 0.8rem;
+}
+.match .status-dot {
+  font-size: 0.7rem;
+  color: var(--gris);
+}
+.badge-desequilibre {
+  font-size: 0.68rem;
+  color: var(--terre);
+  font-weight: 700;
+}
+
+/* ---------- Saisie de score ---------- */
+.score-editor {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin: 1rem 0;
+}
+.score-team {
+  text-align: center;
+  background: #fff;
+  border-radius: var(--radius);
+  padding: 1rem;
+  box-shadow: var(--ombre);
+}
+.score-team .big {
+  font-size: 2.6rem;
+  font-weight: 800;
+  color: var(--bleu);
+  font-variant-numeric: tabular-nums;
+}
+.score-stepper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  margin-top: 0.5rem;
+}
+.score-stepper button {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: none;
+  font-size: 1.3rem;
+  font-weight: 800;
+  background: var(--bleu-pale);
+  color: var(--bleu);
+}
+.score-stepper button.minus {
+  background: #fde3dc;
+  color: var(--terre);
+}
+
+/* ---------- Bracket ---------- */
+.bracket {
+  display: flex;
+  gap: 2rem;
+  overflow-x: auto;
+  padding-bottom: 1rem;
+}
+.bracket-round {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  gap: 1rem;
+  min-width: 210px;
+}
+.bracket-round h4 {
+  text-align: center;
+  color: var(--gris);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+}
+.bracket-match {
+  background: #fff;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--ombre);
+  overflow: hidden;
+  font-size: 0.85rem;
+}
+.bracket-match .bm-team {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0.7rem;
+  cursor: pointer;
+}
+.bracket-match .bm-team + .bm-team {
+  border-top: 1px solid var(--gris-pale);
+}
+.bracket-match .bm-team.win {
+  font-weight: 800;
+  color: var(--vert);
+  background: rgba(42, 157, 110, 0.08);
+}
+.bracket-match .bm-team .bm-score {
+  font-variant-numeric: tabular-nums;
+}
+.bracket-match .bm-team.bye {
+  color: var(--gris);
+  font-style: italic;
+}
+
+/* ---------- Tirage animé ---------- */
+.draw-stage {
+  text-align: center;
+}
+.draw-reel {
+  font-size: 2rem;
+  font-weight: 800;
+  height: 3rem;
+  color: var(--bleu);
+}
+.draw-teams {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 0.8rem;
+  margin-top: 1.2rem;
+}
+.draw-team {
+  background: #fff;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--ombre);
+  padding: 0.7rem;
+  min-height: 90px;
+}
+.draw-team h4 {
+  font-size: 0.95rem;
+  margin-bottom: 0.4rem;
+}
+.draw-slot {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.25rem 0;
+  font-size: 0.88rem;
+}
+
+.winner-banner {
+  text-align: center;
+  background: linear-gradient(135deg, var(--soleil), var(--ocre));
+  color: #5a3a09;
+  border-radius: var(--radius);
+  padding: 1.6rem;
+  box-shadow: var(--ombre-forte);
+  margin-bottom: 1.2rem;
+}
+.winner-banner .cup {
+  font-size: 3rem;
+}
+.winner-banner h2 {
+  font-size: 1.8rem;
+}
+
+.toast {
+  position: fixed;
+  bottom: 1.2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--encre);
+  color: #fff;
+  padding: 0.7rem 1.2rem;
+  border-radius: 999px;
+  box-shadow: var(--ombre-forte);
+  z-index: 80;
+  font-weight: 600;
+}
+
+.muted {
+  color: var(--gris);
+}
+.row {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.between {
+  justify-content: space-between;
+}
+.mt {
+  margin-top: 1rem;
+}
+.confetti {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 60;
+  overflow: hidden;
+}
+.confetti i {
+  position: absolute;
+  top: -10px;
+  width: 9px;
+  height: 14px;
+  border-radius: 2px;
+  animation: fall linear forwards;
+}
+@keyframes fall {
+  to {
+    transform: translateY(110vh) rotate(720deg);
+    opacity: 0.9;
+  }
+}
