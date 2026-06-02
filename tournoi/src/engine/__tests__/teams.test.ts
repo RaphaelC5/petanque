@@ -24,6 +24,30 @@ describe('computeTeamSizes — doublettes', () => {
   });
 });
 
+describe('computeTeamSizes — taille numérique (autres sports)', () => {
+  it('compte multiple de la cible → équipes égales', () => {
+    expect(computeTeamSizes(12, 5)).toEqual([4, 4, 4]); // ceil(12/5)=3
+    expect(computeTeamSizes(10, 5)).toEqual([5, 5]);
+    expect(computeTeamSizes(16, 8)).toEqual([8, 8]);
+  });
+  it('ne dépasse pas la cible quand c’est possible', () => {
+    expect(computeTeamSizes(9, 5)).toEqual([5, 4]);
+  });
+  it('jamais d’équipe d’un seul joueur', () => {
+    for (let size = 2; size <= 8; size++) {
+      for (let n = 2; n <= 40; n++) {
+        const sizes = computeTeamSizes(n, size);
+        expect(sizes.reduce((a, b) => a + b, 0)).toBe(n);
+        if (sizes.length > 1) expect(Math.min(...sizes)).toBeGreaterThanOrEqual(2);
+      }
+    }
+  });
+  it('borne la cible à 8 et au minimum 2', () => {
+    expect(computeTeamSizes(20, 99)).toEqual(computeTeamSizes(20, 8));
+    expect(computeTeamSizes(8, 1)).toEqual(computeTeamSizes(8, 2));
+  });
+});
+
 describe('computeTeamSizes — triplettes', () => {
   it('multiple de 3 → que des triplettes', () => {
     expect(computeTeamSizes(9, 'triplette')).toEqual([3, 3, 3]);

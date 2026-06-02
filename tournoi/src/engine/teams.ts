@@ -2,8 +2,16 @@
 // Constitution & équilibrage des équipes (fonctions pures, testables)
 // ============================================================================
 
-import type { Player, Role, Team, TeamFormat } from '../types';
+import type { Player, Role, Team, TeamFormat, Tournament } from '../types';
 import { shuffle, uid, type Rng, defaultRng } from './util';
+
+/**
+ * Cible de taille d'équipe d'un tournoi : `tailleEquipe` si présent, sinon on
+ * retombe sur `format` (compat anciens tournois sans `tailleEquipe`).
+ */
+export function teamTarget(t: Pick<Tournament, 'format' | 'tailleEquipe'>): TeamFormat | number {
+  return t.tailleEquipe ?? t.format;
+}
 
 const NOMS_EQUIPES = [
   'Les Sangliers', 'Les Cigales', 'Les Calanques', 'Les Goudes',
@@ -12,16 +20,28 @@ const NOMS_EQUIPES = [
   'Les Bouillabaisse', 'Les Navette', 'Les Aïoli', 'Les Tarpin',
 ];
 
+/** Libellé sympa d'une taille d'équipe (doublette/triplette, sinon « équipe de N »). */
+export function teamSizeLabel(size: number): string {
+  if (size === 2) return 'doublette';
+  if (size === 3) return 'triplette';
+  return `équipe de ${size}`;
+}
+
 /**
- * Détermine la taille de chaque équipe à partir du nombre de joueurs et du
- * format souhaité. Ne produit QUE des équipes de 2 ou 3 (règle pétanque).
+ * Détermine la taille de chaque équipe à partir du nombre de joueurs et de la
+ * cible souhaitée (`'doublette'`, `'triplette'`, ou un nombre 2–8).
  *
+ * Pétanque (cible 2 ou 3) — règles historiques :
  * - doublette : un maximum de doublettes ; si le compte est impair, la dernière
  *   équipe passe en triplette.
  * - triplette : un maximum de triplettes ; le reste est absorbé par des
  *   doublettes (reste 1 → deux doublettes ; reste 2 → une doublette).
+ *
+ * Autres sports (cible numérique) : on forme des équipes aussi égales que
+ * possible, sans dépasser la cible et sans jamais laisser une équipe d'un seul
+ * joueur (on tolère +1 sur une équipe si c'est l'unique moyen de l'éviter).
  */
-export function computeTeamSizes(nbPlayers: number, format: TeamFormat): number[] {
+export function computeTeamSizes(nbPlayers: number, format: TeamFormat | number): number[] {
   if (nbPlayers <= 0) return [];
   if (nbPlayers < 2) return [nbPlayers]; // cas dégénéré : 1 joueur
 
@@ -32,14 +52,25 @@ export function computeTeamSizes(nbPlayers: number, format: TeamFormat): number[
     return [...Array(k).fill(2), 3];
   }
 
-  // triplette
-  const rem = nbPlayers % 3;
-  const k = Math.floor(nbPlayers / 3);
-  if (rem === 0) return Array(k).fill(3);
-  if (rem === 2) return [...Array(k).fill(3), 2];
-  // rem === 1 → (k-1) triplettes + deux doublettes
-  if (k >= 1) return [...Array(k - 1).fill(3), 2, 2];
-  return [nbPlayers]; // nbPlayers === 1, déjà géré, sécurité
+  if (format === 'triplette') {
+    const rem = nbPlayers % 3;
+    const k = Math.floor(nbPlayers / 3);
+    if (rem === 0) return Array(k).fill(3);
+    if (rem === 2) return [...Array(k).fill(3), 2];
+    // rem === 1 → (k-1) triplettes + deux doublettes
+    if (k >= 1) return [...Array(k - 1).fill(3), 2, 2];
+    return [nbPlayers]; // nbPlayers === 1, déjà géré, sécurité
+  }
+
+  // Cible numérique (tennis ballon, volley, custom…).
+  const target = Math.max(2, Math.min(8, Math.round(Number(format) || 2)));
+  let nbTeams = Math.max(1, Math.ceil(nbPlayers / target));
+  // Pas d'équipe d'un seul joueur : on réduit le nombre d'équipes si besoin.
+  while (nbTeams > 1 && Math.floor(nbPlayers / nbTeams) < 2) nbTeams--;
+  const base = Math.floor(nbPlayers / nbTeams);
+  const extra = nbPlayers % nbTeams;
+  // Les `extra` premières équipes prennent un joueur de plus.
+  return Array.from({ length: nbTeams }, (_, i) => base + (i < extra ? 1 : 0));
 }
 
 interface BuildOptions {
@@ -64,7 +95,7 @@ export function isUnbalanced(roles: Role[]): boolean {
  */
 export function buildTeams(
   players: Player[],
-  format: TeamFormat,
+  format: TeamFormat | number,
   opts: BuildOptions = {},
 ): Team[] {
   const rng = opts.rng ?? defaultRng;

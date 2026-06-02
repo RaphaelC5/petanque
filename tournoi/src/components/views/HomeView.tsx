@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useStore } from '../../state/store';
 import { gameDisplay } from '../../engine/game';
+import { teamSizeLabel, teamTarget } from '../../engine/teams';
 import { demoPlayers } from '../../data/demo';
 import { CreateTournamentModal } from '../CreateTournamentModal';
 import { tournamentWinner } from '../../engine/tournament';
@@ -80,6 +81,8 @@ export function HomeView({
               const winnerId = tournamentWinner(t);
               const winner = t.teams.find((tm) => tm.id === winnerId);
               const sport = gameDisplay(t.game, t.gameLabel);
+              const tgt = teamTarget(t);
+              const equipeLabel = typeof tgt === 'number' ? teamSizeLabel(tgt) : tgt;
               const go = () =>
                 setView({
                   name: t.statut === 'equipes' || t.teams.length === 0 ? 'constitution' : 'dashboard',
@@ -102,7 +105,7 @@ export function HomeView({
                     </strong>
                   </div>
                   <p className="muted" style={{ margin: '0.3rem 0' }}>
-                    {sport.nom} · {MODE_LABEL[t.mode]} · {t.format}
+                    {sport.nom} · {MODE_LABEL[t.mode]} · {equipeLabel}
                   </p>
                   <div className="row between">
                     <span className="role-badge" style={{ background: 'var(--bleu)' }}>

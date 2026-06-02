@@ -20,6 +20,17 @@ const PROFONDEURS = [
   { value: 16, label: 'Huitièmes' },
 ];
 
+/** Tailles d'équipe proposées pour les sports hors pétanque (2 à 8). */
+const TEAM_SIZES = [2, 3, 4, 5, 6, 7, 8];
+
+/** « 3 doublettes », « 1 équipe de 5 »… pour l'aperçu. */
+function sizeWord(size: number, count: number): string {
+  const s = count > 1 ? 's' : '';
+  if (size === 2) return `${count} doublette${s}`;
+  if (size === 3) return `${count} triplette${s}`;
+  return `${count} équipe${s} de ${size}`;
+}
+
 export function CreateTournamentModal({
   onClose,
   onCreated,
@@ -31,24 +42,22 @@ export function CreateTournamentModal({
 }) {
   const { state, upsertTournament } = useStore();
   const [nom, setNom] = useState('');
-  const [game, setGame] = useState<GameKind>('petanque');
+  // game vide tant qu'aucun sport n'est choisi → les réglages restent masqués.
+  const [game, setGame] = useState<GameKind | ''>('');
   const [gameLabel, setGameLabel] = useState('');
-  const [pointsCible, setPointsCible] = useState(getGame('petanque').pointsCible);
-  const [format, setFormat] = useState<TeamFormat>('doublette');
+  const [pointsCible, setPointsCible] = useState(''); // chaîne libre (vidable)
+  const [format, setFormat] = useState<TeamFormat>('doublette'); // pétanque
+  const [teamSize, setTeamSize] = useState(4); // autres sports
   const [mode, setMode] = useState<CompetitionMode>('poules_finales');
-  const [nbPoules, setNbPoules] = useState(2);
+  const [nbPoules, setNbPoules] = useState('2'); // chaîne libre (vidable)
   const [profondeur, setProfondeur] = useState(4);
   const [selected, setSelected] = useState<Set<string>>(new Set());
-
-  const gameDef = getGame(game);
-  const formats = gameDef.formats;
 
   const pickGame = (kind: GameKind) => {
     setGame(kind);
     const def = getGame(kind);
-    setPointsCible(def.pointsCible);
-    // Recale le format s'il n'est plus proposé par le sport choisi.
-    if (!def.formats.includes(format)) setFormat(def.formats[0]);
+    setPointsCible(String(def.pointsCible));
+    if (kind === 'petanque') setFormat('doublette');
   };
 
   const toggle = (id: string) => {
@@ -62,19 +71,41 @@ export function CreateTournamentModal({
   const toggleAll = () =>
     setSelected(allSelected ? new Set() : new Set(state.players.map((p) => p.id)));
 
-  const sizes = computeTeamSizes(selected.size, format);
+  // Cible de taille d'équipe selon le sport.
+  const target: TeamFormat | number =
+    game === 'petanque' ? format : game === 'coinche' ? 2 : teamSize;
+  const sizes = game ? computeTeamSizes(selected.size, target) : [];
   const nbEquipes = sizes.length;
+
+  // Regroupe les tailles pour l'aperçu (« 3 doublettes, 1 équipe de 5 »).
+  const sizeCounts = new Map<number, number>();
+  for (const s of sizes) sizeCounts.set(s, (sizeCounts.get(s) ?? 0) + 1);
+  const apercu = [...sizeCounts.entries()]
+    .sort((a, b) => b[0] - a[0])
+    .map(([size, n]) => sizeWord(size, n))
+    .join(', ');
+
+  // Validations (on peut vider les champs, mais pas valider à vide).
+  const pts = parseInt(pointsCible, 10);
+  const ptsOk = pointsCible.trim() !== '' && Number.isFinite(pts) && pts >= 1;
+  const poulesNum = parseInt(nbPoules, 10);
+  const poulesOk =
+    mode !== 'poules_finales' || (nbPoules.trim() !== '' && Number.isFinite(poulesNum) && poulesNum >= 1);
   const minOk = selected.size >= 2;
+  const canCreate = !!game && minOk && ptsOk && poulesOk;
 
   const create = () => {
+    if (!canCreate || !game) return;
+    const tailleEquipe = typeof target === 'number' ? target : target === 'triplette' ? 3 : 2;
     const t: Tournament = {
       id: uid('t'),
       game,
       gameLabel: game === 'custom' ? gameLabel.trim() || undefined : undefined,
       nom: nom.trim() || 'Tournoi des copains',
-      format,
+      format: tailleEquipe === 3 ? 'triplette' : 'doublette',
+      tailleEquipe,
       mode,
-      nbPoules: mode === 'poules_finales' ? nbPoules : undefined,
+      nbPoules: mode === 'poules_finales' ? Math.max(1, poulesNum) : undefined,
       taillePhaseFinale: mode === 'poules_finales' ? profondeur : undefined,
       participantIds: [...selected],
       teams: [],
@@ -82,7 +113,7 @@ export function CreateTournamentModal({
       matches: [],
       statut: 'equipes',
       createdAt: Date.now(),
-      pointsCible: Math.max(1, pointsCible),
+      pointsCible: Math.max(1, pts),
     };
     upsertTournament(t);
     flash('Tournoi créé, place aux équipes !');
@@ -116,9 +147,7 @@ export function CreateTournamentModal({
                   {def.emoji} {def.nom}
                   {recommended ? ' ⭐' : ''}
                 </span>
-                <span className="opt-desc">
-                  {recommended ? 'Recommandé' : `Jusqu'à ${def.pointsCible} pts`}
-                </span>
+                {recommended && <span className="opt-desc">Recommandé</span>}
               </button>
             );
           })}
@@ -137,32 +166,54 @@ export function CreateTournamentModal({
         </div>
       )}
 
-      <div className="row" style={{ gap: '1.4rem' }}>
-        <div className="field" style={{ flex: 1 }}>
-          <label>Format d'équipe</label>
-          <div className="chips">
-            {formats.map((f) => (
-              <button
-                key={f}
-                className={`chip option ${format === f ? 'selected' : ''}`}
-                onClick={() => setFormat(f)}
-              >
-                <span className="opt-title">{f === 'doublette' ? '👥 Doublettes' : '👨‍👩‍👦 Triplettes'}</span>
-                <span className="opt-desc">{f === 'doublette' ? '2 joueurs' : '3 joueurs'} par équipe</span>
-              </button>
-            ))}
+      {/* Réglages d'équipe / points : visibles seulement après choix du sport. */}
+      {game && (
+        <div className="row" style={{ gap: '1.4rem' }}>
+          <div className="field" style={{ flex: 1 }}>
+            <label>Format d'équipe</label>
+            {game === 'petanque' ? (
+              <div className="chips">
+                {(['doublette', 'triplette'] as TeamFormat[]).map((f) => (
+                  <button
+                    key={f}
+                    className={`chip option ${format === f ? 'selected' : ''}`}
+                    onClick={() => setFormat(f)}
+                  >
+                    <span className="opt-title">
+                      {f === 'doublette' ? '👥 Doublettes' : '👨‍👩‍👦 Triplettes'}
+                    </span>
+                    <span className="opt-desc">
+                      {f === 'doublette' ? '2 joueurs' : '3 joueurs'} par équipe
+                    </span>
+                  </button>
+                ))}
+              </div>
+            ) : game === 'coinche' ? (
+              <p className="muted" style={{ margin: '0.3rem 0 0' }}>
+                👥 2 joueurs par équipe (imposé à la coinche).
+              </p>
+            ) : (
+              <select value={teamSize} onChange={(e) => setTeamSize(+e.target.value)}>
+                {TEAM_SIZES.map((n) => (
+                  <option key={n} value={n}>
+                    {n} joueurs par équipe
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
+          <div className="field" style={{ flex: '0 0 12rem' }}>
+            <label>Partie en combien de points ?</label>
+            <input
+              type="number"
+              min={1}
+              value={pointsCible}
+              placeholder="13"
+              onChange={(e) => setPointsCible(e.target.value)}
+            />
           </div>
         </div>
-        <div className="field" style={{ flex: '0 0 12rem' }}>
-          <label>Partie en combien de points ?</label>
-          <input
-            type="number"
-            min={1}
-            value={pointsCible}
-            onChange={(e) => setPointsCible(Math.max(1, +e.target.value))}
-          />
-        </div>
-      </div>
+      )}
 
       <div className="field">
         <label>Mode de compétition</label>
@@ -189,7 +240,8 @@ export function CreateTournamentModal({
               min={1}
               max={Math.max(1, nbEquipes)}
               value={nbPoules}
-              onChange={(e) => setNbPoules(Math.max(1, +e.target.value))}
+              placeholder="2"
+              onChange={(e) => setNbPoules(e.target.value)}
             />
           </div>
           <div className="field" style={{ flex: 1 }}>
@@ -231,19 +283,15 @@ export function CreateTournamentModal({
         )}
       </div>
 
-      {minOk && (
+      {game && minOk && (
         <div className="card" style={{ background: 'var(--bleu-pale)' }}>
-          <strong>Aperçu :</strong> {nbEquipes} équipes →{' '}
-          {sizes.filter((s) => s === 2).length > 0 &&
-            `${sizes.filter((s) => s === 2).length} doublette(s)`}
-          {sizes.filter((s) => s === 3).length > 0 &&
-            ` ${sizes.filter((s) => s === 3).length} triplette(s)`}
-          {format === 'doublette' && sizes.includes(3) && (
+          <strong>Aperçu :</strong> {nbEquipes} équipes → {apercu}
+          {game === 'petanque' && format === 'doublette' && sizes.includes(3) && (
             <div className="badge-desequilibre">
               ⚠️ Nombre impair : la dernière équipe passe en triplette.
             </div>
           )}
-          {format === 'triplette' && sizes.includes(2) && (
+          {game === 'petanque' && format === 'triplette' && sizes.includes(2) && (
             <div className="badge-desequilibre">
               ⚠️ Le reste est complété par des doublettes.
             </div>
@@ -255,11 +303,21 @@ export function CreateTournamentModal({
         <button className="btn btn-ghost" onClick={onClose}>
           Annuler
         </button>
-        <button className="btn btn-primary" onClick={create} disabled={!minOk}>
+        <button className="btn btn-primary" onClick={create} disabled={!canCreate}>
           Constituer les équipes →
         </button>
       </div>
-      {!minOk && <p className="muted" style={{ textAlign: 'right' }}>Sélectionne au moins 2 joueurs.</p>}
+      {!canCreate && (
+        <p className="muted" style={{ textAlign: 'right' }}>
+          {!game
+            ? 'Choisis un sport pour continuer.'
+            : !minOk
+              ? 'Sélectionne au moins 2 joueurs.'
+              : !ptsOk
+                ? 'Indique en combien de points se joue la partie.'
+                : 'Indique un nombre de poules valide.'}
+        </p>
+      )}
     </Modal>
   );
 }

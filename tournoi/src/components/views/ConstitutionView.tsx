@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useStore } from '../../state/store';
 import { roleMeta } from '../../engine/game';
-import { buildTeams, computeTeamSizes, teamFromPlayers } from '../../engine/teams';
+import { buildTeams, computeTeamSizes, teamFromPlayers, teamSizeLabel, teamTarget } from '../../engine/teams';
 import { generateMatches } from '../../engine/tournament';
 import { DrawAnimation } from '../DrawAnimation';
 import { EditableTeamName } from '../common';
@@ -25,9 +25,10 @@ export function ConstitutionView({
     () => state.players.filter((p) => tournament.participantIds.includes(p.id)),
     [state.players, tournament.participantIds],
   );
+  const target = teamTarget(tournament);
   const sizes = useMemo(
-    () => computeTeamSizes(participants.length, tournament.format),
-    [participants.length, tournament.format],
+    () => computeTeamSizes(participants.length, target),
+    [participants.length, target],
   );
 
   const [mode, setMode] = useState<ModeConstit>('aleatoire');
@@ -45,7 +46,7 @@ export function ConstitutionView({
   const pool = participants.filter((p) => !assigned.has(p.id));
 
   const launchDraw = () => {
-    setDrawTeams(buildTeams(participants, tournament.format, { random: true }));
+    setDrawTeams(buildTeams(participants, target, { random: true }));
     setDrawKey((k) => k + 1);
   };
 
@@ -92,9 +93,8 @@ export function ConstitutionView({
       </div>
 
       <p className="muted">
-        {participants.length} joueurs → {sizes.length} équipes (
-        {sizes.filter((s) => s === 2).length} doublette(s),{' '}
-        {sizes.filter((s) => s === 3).length} triplette(s))
+        {participants.length} joueurs → {sizes.length} équipes
+        {sizes.length > 0 && ` (${sizes.map((s) => s).join(' + ')} joueurs)`}
       </p>
 
       <div className="tabs">
@@ -203,7 +203,7 @@ export function ConstitutionView({
                       />
                     </strong>
                     <span className="muted">
-                      {ids.length}/{sizes[i]} {sizes[i] === 3 ? '(triplette)' : '(doublette)'}
+                      {ids.length}/{sizes[i]} ({teamSizeLabel(sizes[i])})
                     </span>
                   </div>
                   {teamPlayers.map((p) => (

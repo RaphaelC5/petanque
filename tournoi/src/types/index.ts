@@ -78,6 +78,12 @@ export interface Tournament {
   gameLabel?: string;
   nom: string;
   format: TeamFormat;
+  /**
+   * Taille d'équipe visée (2 à 8). Pour la pétanque elle vaut 2 (doublette) ou
+   * 3 (triplette) ; les autres sports peuvent monter jusqu'à 8. Optionnel pour
+   * compatibilité avec les anciens tournois (on retombe alors sur `format`).
+   */
+  tailleEquipe?: number;
   mode: CompetitionMode;
   /** Nombre de poules (mode poules_finales). */
   nbPoules?: number;
