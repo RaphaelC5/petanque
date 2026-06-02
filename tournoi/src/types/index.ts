@@ -8,7 +8,12 @@
 // (tournoi, équipes, classement) est volontairement générique.
 // ============================================================================
 
-export type GameKind = 'petanque';
+export type GameKind =
+  | 'petanque'
+  | 'tennis_ballon'
+  | 'volley_piscine'
+  | 'coinche'
+  | 'custom';
 
 export type Role = 'tireur' | 'pointeur' | 'mixte';
 
@@ -69,6 +74,8 @@ export type TournamentStatus = 'config' | 'equipes' | 'en_cours' | 'termine';
 export interface Tournament {
   id: string;
   game: GameKind;
+  /** Nom du sport quand `game === 'custom'`. */
+  gameLabel?: string;
   nom: string;
   format: TeamFormat;
   mode: CompetitionMode;
@@ -94,6 +101,10 @@ export interface Tournament {
  */
 export interface QuickMatch {
   id: string;
+  /** Sport du match (par défaut pétanque pour les anciens enregistrements). */
+  game?: GameKind;
+  /** Nom du sport quand `game === 'custom'`. */
+  gameLabel?: string;
   sideAPlayerIds: string[];
   sideBPlayerIds: string[];
   scoreA: number;

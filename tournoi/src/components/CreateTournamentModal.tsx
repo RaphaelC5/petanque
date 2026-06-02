@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { useStore } from '../state/store';
-import { PETANQUE } from '../engine/game';
+import { GAMES, SELECTABLE_GAMES, getGame } from '../engine/game';
 import { uid } from '../engine/util';
 import { computeTeamSizes } from '../engine/teams';
 import { Modal } from './common';
-import type { CompetitionMode, TeamFormat, Tournament } from '../types';
+import type { CompetitionMode, GameKind, TeamFormat, Tournament } from '../types';
 
 const MODES: { value: CompetitionMode; label: string; desc: string }[] = [
   { value: 'poules_finales', label: 'Poules + finales', desc: 'Poules puis tableau final' },
@@ -31,11 +31,25 @@ export function CreateTournamentModal({
 }) {
   const { state, upsertTournament } = useStore();
   const [nom, setNom] = useState('');
+  const [game, setGame] = useState<GameKind>('petanque');
+  const [gameLabel, setGameLabel] = useState('');
+  const [pointsCible, setPointsCible] = useState(getGame('petanque').pointsCible);
   const [format, setFormat] = useState<TeamFormat>('doublette');
   const [mode, setMode] = useState<CompetitionMode>('poules_finales');
   const [nbPoules, setNbPoules] = useState(2);
   const [profondeur, setProfondeur] = useState(4);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+
+  const gameDef = getGame(game);
+  const formats = gameDef.formats;
+
+  const pickGame = (kind: GameKind) => {
+    setGame(kind);
+    const def = getGame(kind);
+    setPointsCible(def.pointsCible);
+    // Recale le format s'il n'est plus proposé par le sport choisi.
+    if (!def.formats.includes(format)) setFormat(def.formats[0]);
+  };
 
   const toggle = (id: string) => {
     setSelected((prev) => {
@@ -55,7 +69,8 @@ export function CreateTournamentModal({
   const create = () => {
     const t: Tournament = {
       id: uid('t'),
-      game: 'petanque',
+      game,
+      gameLabel: game === 'custom' ? gameLabel.trim() || undefined : undefined,
       nom: nom.trim() || 'Tournoi des copains',
       format,
       mode,
@@ -67,7 +82,7 @@ export function CreateTournamentModal({
       matches: [],
       statut: 'equipes',
       createdAt: Date.now(),
-      pointsCible: PETANQUE.pointsCible,
+      pointsCible: Math.max(1, pointsCible),
     };
     upsertTournament(t);
     flash('Tournoi créé, place aux équipes !');
@@ -87,18 +102,65 @@ export function CreateTournamentModal({
       </div>
 
       <div className="field">
-        <label>Format d'équipe</label>
+        <label>Sport</label>
         <div className="chips">
-          {(['doublette', 'triplette'] as TeamFormat[]).map((f) => (
-            <button
-              key={f}
-              className={`chip option ${format === f ? 'selected' : ''}`}
-              onClick={() => setFormat(f)}
-            >
-              <span className="opt-title">{f === 'doublette' ? '👥 Doublettes' : '👨‍👩‍👦 Triplettes'}</span>
-              <span className="opt-desc">{f === 'doublette' ? '2 joueurs' : '3 joueurs'} par équipe</span>
-            </button>
-          ))}
+          {SELECTABLE_GAMES.map(({ kind, recommended }) => {
+            const def = GAMES[kind];
+            return (
+              <button
+                key={kind}
+                className={`chip option ${game === kind ? 'selected' : ''}`}
+                onClick={() => pickGame(kind)}
+              >
+                <span className="opt-title">
+                  {def.emoji} {def.nom}
+                  {recommended ? ' ⭐' : ''}
+                </span>
+                <span className="opt-desc">
+                  {recommended ? 'Recommandé' : `Jusqu'à ${def.pointsCible} pts`}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {game === 'custom' && (
+        <div className="field">
+          <label>Nom du sport</label>
+          <input
+            type="text"
+            value={gameLabel}
+            placeholder="ex. Molkky, Fléchettes, Ping-pong…"
+            onChange={(e) => setGameLabel(e.target.value)}
+          />
+        </div>
+      )}
+
+      <div className="row" style={{ gap: '1.4rem' }}>
+        <div className="field" style={{ flex: 1 }}>
+          <label>Format d'équipe</label>
+          <div className="chips">
+            {formats.map((f) => (
+              <button
+                key={f}
+                className={`chip option ${format === f ? 'selected' : ''}`}
+                onClick={() => setFormat(f)}
+              >
+                <span className="opt-title">{f === 'doublette' ? '👥 Doublettes' : '👨‍👩‍👦 Triplettes'}</span>
+                <span className="opt-desc">{f === 'doublette' ? '2 joueurs' : '3 joueurs'} par équipe</span>
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="field" style={{ flex: '0 0 12rem' }}>
+          <label>Partie en combien de points ?</label>
+          <input
+            type="number"
+            min={1}
+            value={pointsCible}
+            onChange={(e) => setPointsCible(Math.max(1, +e.target.value))}
+          />
         </div>
       </div>
 

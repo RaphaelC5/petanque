@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { useStore } from '../../state/store';
 import { closeMatch, tournamentWinner } from '../../engine/tournament';
+import { gameDisplay } from '../../engine/game';
 import { RankingPanel } from '../RankingPanel';
 import { PouleSection } from '../PouleSection';
 import { BracketView } from '../BracketView';
@@ -66,7 +67,7 @@ export function DashboardView({
       <Confetti show={!!winnerTeam} />
       <div className="row between">
         <h1 className="section-title" style={{ margin: 0 }}>
-          🎯 {tournament.nom}
+          {gameDisplay(tournament.game, tournament.gameLabel).emoji} {tournament.nom}
         </h1>
         <button className="btn btn-ghost btn-sm" onClick={() => setView({ name: 'home' })}>
           ← Accueil

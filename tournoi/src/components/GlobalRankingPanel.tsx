@@ -96,8 +96,8 @@ export function GlobalRankingPanel({
                         {roleMeta(r.role).emoji} {r.nom}
                       </div>
                       <div className="meta">
-                        {r.victoires}V · {r.defaites}D · GA{' '}
-                        {r.goalAverage > 0 ? `+${r.goalAverage}` : r.goalAverage}
+                        {r.victoires}V · {r.defaites}D · {r.matchsJoues} match
+                        {r.matchsJoues > 1 ? 's' : ''}
                       </div>
                     </div>
                     <div style={{ textAlign: 'right' }}>

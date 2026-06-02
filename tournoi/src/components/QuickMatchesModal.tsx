@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { Modal } from './common';
-import { roleMeta } from '../engine/game';
+import { gameDisplay, roleMeta } from '../engine/game';
 import { useStore } from '../state/store';
 import type { Player, QuickMatch } from '../types';
 
@@ -76,6 +76,10 @@ export function QuickMatchesModal({
                   </span>
                 </div>
                 <div className="qm-history-meta">
+                  {(() => {
+                    const s = gameDisplay(m.game, m.gameLabel);
+                    return `${s.emoji} ${s.nom} · `;
+                  })()}
                   {m.label ? `${m.label} · ` : ''}
                   {fmtDate(m.createdAt)}
                 </div>

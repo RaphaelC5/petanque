@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useStore } from '../../state/store';
-import { PETANQUE } from '../../engine/game';
+import { gameDisplay } from '../../engine/game';
 import { demoPlayers } from '../../data/demo';
 import { CreateTournamentModal } from '../CreateTournamentModal';
 import { tournamentWinner } from '../../engine/tournament';
@@ -79,6 +79,7 @@ export function HomeView({
             {tournois.map((t) => {
               const winnerId = tournamentWinner(t);
               const winner = t.teams.find((tm) => tm.id === winnerId);
+              const sport = gameDisplay(t.game, t.gameLabel);
               const go = () =>
                 setView({
                   name: t.statut === 'equipes' || t.teams.length === 0 ? 'constitution' : 'dashboard',
@@ -97,11 +98,11 @@ export function HomeView({
                 >
                   <div className="row between">
                     <strong style={{ fontSize: '1.15rem' }}>
-                      {PETANQUE.emoji} {t.nom}
+                      {sport.emoji} {t.nom}
                     </strong>
                   </div>
                   <p className="muted" style={{ margin: '0.3rem 0' }}>
-                    {MODE_LABEL[t.mode]} · {t.format}
+                    {sport.nom} · {MODE_LABEL[t.mode]} · {t.format}
                   </p>
                   <div className="row between">
                     <span className="role-badge" style={{ background: 'var(--bleu)' }}>

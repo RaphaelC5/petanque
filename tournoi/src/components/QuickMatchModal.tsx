@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react';
 import { Modal } from './common';
-import { roleMeta } from '../engine/game';
+import { GAMES, SELECTABLE_GAMES, roleMeta } from '../engine/game';
 import { uid } from '../engine/util';
 import { useStore } from '../state/store';
-import type { Player, QuickMatch } from '../types';
+import type { GameKind, Player, QuickMatch } from '../types';
 
 /**
  * Création / édition d'un match amical hors tournoi : on choisit les joueurs
@@ -22,6 +22,8 @@ export function QuickMatchModal({
   const { state, addQuickMatch, updateQuickMatch } = useStore();
   const players = state.players;
 
+  const [game, setGame] = useState<GameKind>(existing?.game ?? 'petanque');
+  const [gameLabel, setGameLabel] = useState(existing?.gameLabel ?? '');
   const [sideA, setSideA] = useState<Set<string>>(
     () => new Set(existing?.sideAPlayerIds ?? []),
   );
@@ -66,6 +68,8 @@ export function QuickMatchModal({
     if (!valid) return;
     const match: QuickMatch = {
       id: existing?.id ?? uid('qm'),
+      game,
+      gameLabel: game === 'custom' ? gameLabel.trim() || undefined : undefined,
       sideAPlayerIds: [...sideA],
       sideBPlayerIds: [...sideB],
       scoreA: a,
@@ -111,9 +115,43 @@ export function QuickMatchModal({
       ) : (
         <>
           <p className="muted" style={{ marginTop: 0 }}>
-            Choisis les joueurs de chaque camp et le score. Ça compte dans le classement général
-            (pas de tournoi créé).
+            Choisis le sport, les joueurs de chaque camp et le score. Ça compte dans le classement
+            général (pas de tournoi créé).
           </p>
+
+          <div className="field">
+            <label>Sport</label>
+            <div className="chips">
+              {SELECTABLE_GAMES.map(({ kind, recommended }) => {
+                const def = GAMES[kind];
+                return (
+                  <button
+                    key={kind}
+                    type="button"
+                    className={`chip option ${game === kind ? 'selected' : ''}`}
+                    onClick={() => setGame(kind)}
+                  >
+                    <span className="opt-title">
+                      {def.emoji} {def.nom}
+                      {recommended ? ' ⭐' : ''}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {game === 'custom' && (
+            <div className="field">
+              <label>Nom du sport</label>
+              <input
+                type="text"
+                value={gameLabel}
+                placeholder="ex. Molkky, Fléchettes, Ping-pong…"
+                onChange={(e) => setGameLabel(e.target.value)}
+              />
+            </div>
+          )}
 
           <div className="qm-grid">
             <div className="qm-side">
@@ -166,7 +204,7 @@ export function QuickMatchModal({
           />
 
           {scoreA !== '' && scoreB !== '' && a === b && (
-            <p className="qm-warn">Un match de pétanque ne peut pas être nul.</p>
+            <p className="qm-warn">Un match ne peut pas être nul : il faut un gagnant.</p>
           )}
 
           <div className="row mt" style={{ justifyContent: 'flex-end' }}>

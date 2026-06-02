@@ -6,7 +6,7 @@
 // joueur de l'équipe. Le goal average (points marqués − points encaissés,
 // cumulés) sert de premier départage.
 //
-// Ordre de tri retenu :
+// Ordre de tri (classement d'un tournoi) :
 //   1. points (3 × victoires)         — décroissant
 //   2. goal average                   — décroissant
 //   3. nombre de victoires            — décroissant
@@ -14,8 +14,10 @@
 //   5. nom (ordre alphabétique)       — pour un tri stable
 //
 // Deux portées de classement :
-//   • `computePlayerRanking`  → un seul tournoi (panneau du tableau de bord)
-//   • `computeGlobalRanking`  → tous tournois + matchs amicaux cumulés
+//   • `computePlayerRanking`  → un seul tournoi (panneau du tableau de bord),
+//     avec départage au goal average.
+//   • `computeGlobalRanking`  → tous tournois + matchs amicaux cumulés. Le goal
+//     average N'ENTRE PAS dans le tri général (points, victoires, nom).
 // ============================================================================
 
 import type { AppState, Player, PlayerRankingRow } from '../types';
@@ -78,17 +80,25 @@ function tally(
   }
 }
 
-function finalize(rows: Rows): PlayerRankingRow[] {
+/**
+ * Trie les lignes. `useGoalAverage` n'est vrai que pour le classement d'un
+ * tournoi : le classement général ne départage PAS au goal average (seulement
+ * points, puis victoires, puis nom).
+ */
+function finalize(rows: Rows, useGoalAverage: boolean): PlayerRankingRow[] {
   const out = [...rows.values()];
   for (const r of out) r.goalAverage = r.pointsPour - r.pointsContre;
-  return out.sort(
-    (a, b) =>
-      b.points - a.points ||
-      b.goalAverage - a.goalAverage ||
+  return out.sort((a, b) => {
+    if (b.points !== a.points) return b.points - a.points;
+    if (useGoalAverage && b.goalAverage !== a.goalAverage) {
+      return b.goalAverage - a.goalAverage;
+    }
+    return (
       b.victoires - a.victoires ||
       b.pointsPour - a.pointsPour ||
-      a.nom.localeCompare(b.nom),
-  );
+      a.nom.localeCompare(b.nom)
+    );
+  });
 }
 
 export function computePlayerRanking(
@@ -115,12 +125,13 @@ export function computePlayerRanking(
     );
   }
 
-  return finalize(rows);
+  return finalize(rows, true);
 }
 
 /**
  * Classement général : cumule les points de TOUS les tournois et de TOUS les
  * matchs amicaux. Seuls les joueurs ayant disputé au moins un match y figurent.
+ * Le goal average n'entre PAS dans le tri (uniquement points, victoires, nom).
  */
 export function computeGlobalRanking(state: AppState): PlayerRankingRow[] {
   const byId = new Map(state.players.map((p) => [p.id, p]));
@@ -143,9 +154,9 @@ export function computeGlobalRanking(state: AppState): PlayerRankingRow[] {
   }
 
   for (const q of state.quickMatches ?? []) {
-    if (q.scoreA === q.scoreB) continue; // pas de nul en pétanque
+    if (q.scoreA === q.scoreB) continue; // pas de match nul
     tally(ensure, q.sideAPlayerIds, q.sideBPlayerIds, q.scoreA, q.scoreB);
   }
 
-  return finalize(rows);
+  return finalize(rows, false);
 }
