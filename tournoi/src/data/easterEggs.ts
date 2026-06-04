@@ -24,3 +24,34 @@ export function isCommeIlPeut(nom: string): boolean {
 export function isDam(nom: string): boolean {
   return ['dam', 'damien', 'damyenks'].includes(normName(nom));
 }
+
+// ---------------------------------------------------------------------------
+// Avatar « d'office » selon le prénom (la casse et les accents ne comptent pas).
+// Dès qu'un de ces noms est tapé, on applique l'emoji correspondant — modifiable
+// ensuite via « Modifier l'avatar ».
+// ---------------------------------------------------------------------------
+
+const AVATAR_BY_NAME: Record<string, string> = {};
+const mapNames = (emoji: string, names: string[]) => {
+  for (const n of names) AVATAR_BY_NAME[normName(n)] = emoji;
+};
+
+mapNames('🏋️', ['piano', 'pians', 'yannick', 'yan']); // muscu
+mapNames('🎒', ['adri', 'serres', 'serinho', 'serri', 'seri', 'serino']); // cartable
+mapNames('🕳️', ['cam', 'camille', 'cam v']); // le trou
+mapNames('🏄', ['tim', 'timothée', 'la dimode', 'dimode']); // surfeur
+mapNames('🦀', ['tom', 'tomich']); // crabe
+mapNames('⛷️', ['dam', 'damyenks', 'damien']); // skieur
+mapNames('👨‍❤️‍👨', ['jean', 'dylan brocher', 'jeannot', 'charlie', 'charlot']); // couple gay
+mapNames('🫃', ['sauti', 'hugo', 'sautarel']); // homme enceinte
+mapNames('🍺', ['thib', 'thibaut', 'thibault']); // bière
+mapNames('🤡', ['cyril', 'cissou']); // clown
+mapNames('⚽', ['leo', 'leopold', 'bach']); // ballon de foot
+mapNames('🤖', ['gab', 'gaby', 'gabs']); // tête de robot
+mapNames('🤙', ['pierre', 'pierro', 'la bourgne', 'bourgnou']); // appelle-moi
+mapNames('🤴', ['raph', 'rafa', 'raphael', 'rafiki']); // roi
+
+/** Emoji à appliquer d'office pour ce prénom, ou null si aucun. */
+export function avatarForName(nom: string): string | null {
+  return AVATAR_BY_NAME[normName(nom)] ?? null;
+}

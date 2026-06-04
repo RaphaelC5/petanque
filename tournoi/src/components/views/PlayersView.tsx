@@ -4,16 +4,22 @@ import { useStore } from '../../state/store';
 import { PETANQUE } from '../../engine/game';
 import { uid } from '../../engine/util';
 import { Modal, RoleBadge } from '../common';
-import { isCam, isCommeIlPeut } from '../../data/easterEggs';
+import { EmojiPicker } from '../EmojiPicker';
+import { BASE_AVATARS } from '../../data/emojis';
+import { avatarForName, isCam, isCommeIlPeut } from '../../data/easterEggs';
 import type { Player, Role } from '../../types';
 
-const EMOJIS = ['🧔', '👩', '👨‍🦰', '🧑', '👵', '👴', '🧑‍🦱', '👱', '🤠', '🧓', '👲', '🙋', '🕳️'];
+const DEFAULT_EMOJI = BASE_AVATARS[0];
 
 export function PlayersView({ flash }: { flash: (m: string) => void }) {
   const { state, addPlayer, updatePlayer, removePlayer } = useStore();
   const [nom, setNom] = useState('');
   const [role, setRole] = useState<Role>('mixte');
-  const [emoji, setEmoji] = useState(EMOJIS[0]);
+  const [emoji, setEmoji] = useState(DEFAULT_EMOJI);
+  // Vrai dès que l'utilisateur choisit lui-même un avatar : on cesse alors
+  // d'appliquer automatiquement l'emoji déduit du prénom.
+  const [emojiTouched, setEmojiTouched] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [camPopup, setCamPopup] = useState(false);
 
@@ -26,6 +32,29 @@ export function PlayersView({ flash }: { flash: (m: string) => void }) {
     if (isCam(nom) && r === 'tireur') setCamPopup(true);
   };
 
+  // Saisie du nom : applique l'avatar « d'office » tant qu'on n'a pas choisi
+  // manuellement un emoji.
+  const onNameChange = (value: string) => {
+    setNom(value);
+    if (!emojiTouched) {
+      const auto = avatarForName(value);
+      if (auto) setEmoji(auto);
+    }
+  };
+
+  const chooseEmoji = (e: string) => {
+    setEmoji(e);
+    setEmojiTouched(true);
+  };
+
+  const resetForm = () => {
+    setNom('');
+    setRole('mixte');
+    setEmoji(DEFAULT_EMOJI);
+    setEmojiTouched(false);
+    setEditId(null);
+  };
+
   const submit = () => {
     const name = nom.trim();
     if (!name) return;
@@ -36,17 +65,15 @@ export function PlayersView({ flash }: { flash: (m: string) => void }) {
       addPlayer({ id: uid('p'), nom: name, role: effectiveRole, emoji });
       flash(`${name} ajouté·e 👍`);
     }
-    setNom('');
-    setRole('mixte');
-    setEmoji(EMOJIS[0]);
-    setEditId(null);
+    resetForm();
   };
 
   const startEdit = (p: Player) => {
     setEditId(p.id);
     setNom(p.nom);
     setRole(p.role);
-    setEmoji(p.emoji ?? EMOJIS[0]);
+    setEmoji(p.emoji ?? DEFAULT_EMOJI);
+    setEmojiTouched(true); // on garde l'avatar existant tel quel
   };
 
   return (
@@ -60,7 +87,7 @@ export function PlayersView({ flash }: { flash: (m: string) => void }) {
             type="text"
             value={nom}
             placeholder="ex. Marius"
-            onChange={(e) => setNom(e.target.value)}
+            onChange={(e) => onNameChange(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && submit()}
           />
         </div>
@@ -87,13 +114,18 @@ export function PlayersView({ flash }: { flash: (m: string) => void }) {
         </div>
 
         <div className="field">
-          <label>Avatar</label>
+          <div className="row between">
+            <label>Avatar <span style={{ fontSize: '1.3rem' }}>{emoji}</span></label>
+            <button className="btn btn-sm btn-ghost" onClick={() => setPickerOpen(true)}>
+              😀 Modifier l'avatar
+            </button>
+          </div>
           <div className="chips">
-            {EMOJIS.map((e) => (
+            {BASE_AVATARS.map((e, i) => (
               <button
-                key={e}
+                key={`${e}-${i}`}
                 className={`chip ${emoji === e ? 'selected' : ''}`}
-                onClick={() => setEmoji(e)}
+                onClick={() => chooseEmoji(e)}
                 style={{ fontSize: '1.2rem' }}
               >
                 {e}
@@ -107,13 +139,7 @@ export function PlayersView({ flash }: { flash: (m: string) => void }) {
             {editId ? 'Enregistrer' : '➕ Ajouter le joueur'}
           </button>
           {editId && (
-            <button
-              className="btn btn-ghost"
-              onClick={() => {
-                setEditId(null);
-                setNom('');
-              }}
-            >
+            <button className="btn btn-ghost" onClick={resetForm}>
               Annuler
             </button>
           )}
@@ -169,6 +195,13 @@ export function PlayersView({ flash }: { flash: (m: string) => void }) {
       )}
 
       <AnimatePresence>
+        {pickerOpen && (
+          <EmojiPicker
+            current={emoji}
+            onPick={chooseEmoji}
+            onClose={() => setPickerOpen(false)}
+          />
+        )}
         {camPopup && (
           <Modal title="🫳 Minute…" onClose={() => setCamPopup(false)}>
             <p style={{ fontSize: '1.3rem', fontWeight: 800, textAlign: 'center', margin: '0.5rem 0 1rem' }}>

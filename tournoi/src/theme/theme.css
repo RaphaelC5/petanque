@@ -1120,3 +1120,44 @@ select:focus {
   display: flex;
   gap: 0.35rem;
 }
+
+/* --- Sélecteur d'avatars (bibliothèque complète) --- */
+.emoji-picker {
+  max-height: 60vh;
+  overflow-y: auto;
+  padding-right: 0.3rem;
+}
+.emoji-cat + .emoji-cat {
+  margin-top: 1rem;
+}
+.emoji-cat-title {
+  margin: 0 0 0.4rem;
+  position: sticky;
+  top: 0;
+  background: var(--blanc, #fff);
+  padding: 0.2rem 0;
+  font-size: 0.9rem;
+  z-index: 1;
+}
+.emoji-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(2.4rem, 1fr));
+  gap: 0.3rem;
+}
+.emoji-btn {
+  font-size: 1.4rem;
+  line-height: 1;
+  padding: 0.35rem 0;
+  border: 1px solid transparent;
+  border-radius: 0.5rem;
+  background: var(--bleu-pale, #eef3f8);
+  cursor: pointer;
+  transition: transform 0.08s ease, border-color 0.08s ease;
+}
+.emoji-btn:hover {
+  transform: scale(1.15);
+}
+.emoji-btn.selected {
+  border-color: var(--bleu, #0a6ca8);
+  background: #fff;
+}
