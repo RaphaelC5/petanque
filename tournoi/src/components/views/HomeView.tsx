@@ -3,7 +3,6 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { useStore } from '../../state/store';
 import { gameDisplay } from '../../engine/game';
 import { teamSizeLabel, teamTarget } from '../../engine/teams';
-import { demoPlayers } from '../../data/demo';
 import { CreateTournamentModal } from '../CreateTournamentModal';
 import { tournamentWinner } from '../../engine/tournament';
 import { ChambrageFeed } from '../../social/ChambrageFeed';
@@ -30,15 +29,10 @@ export function HomeView({
   setView: (v: View) => void;
   flash: (m: string) => void;
 }) {
-  const { state, addPlayer, removeTournament } = useStore();
+  const { state, removeTournament } = useStore();
   const [creating, setCreating] = useState(false);
 
   const tournois = [...state.tournaments].sort((a, b) => b.createdAt - a.createdAt);
-
-  const seedDemo = () => {
-    demoPlayers().forEach(addPlayer);
-    flash('12 copains ajoutés 🎉');
-  };
 
   return (
     <div>
@@ -67,11 +61,6 @@ export function HomeView({
             <button className="btn btn-primary" onClick={() => setCreating(true)}>
               Créer mon premier tournoi
             </button>
-            {state.players.length === 0 && (
-              <button className="btn btn-ghost" onClick={seedDemo}>
-                🎲 Charger 12 joueurs de démo
-              </button>
-            )}
           </div>
         </div>
       ) : (
