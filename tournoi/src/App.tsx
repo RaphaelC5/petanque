@@ -80,7 +80,7 @@ export function App() {
         <div className="brand" onClick={() => setView({ name: 'home' })}>
           <span className="logo">🌞</span>
           <div>
-            <div className="title">Marseille</div>
+            <div className="title">Marseille - semaine des copains</div>
             <div className="subtitle">Olympiades</div>
           </div>
         </div>
