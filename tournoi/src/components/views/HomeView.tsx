@@ -45,7 +45,7 @@ export function HomeView({
       <section className="card" style={{ marginBottom: '1.2rem' }}>
         <div className="row between">
           <div>
-            <h1 style={{ fontSize: '1.7rem' }}>À tous ceux qui aime la vie</h1>
+            <h1 style={{ fontSize: '1.7rem' }}>À ceux qui aiment la vie 🍻🕺🪩</h1>
             <p className="muted" style={{ margin: 0 }}>
               on va professionnaliser les tournois pour pas qu'il y ai de chalag sur le vrai
               vainqueur de la semaine
@@ -61,7 +61,7 @@ export function HomeView({
 
       {tournois.length === 0 ? (
         <div className="empty">
-          <span className="emoji">🥖</span>
+          <span className="emoji">🪩</span>
           Aucun tournoi pour le moment.
           <div className="mt row" style={{ justifyContent: 'center' }}>
             <button className="btn btn-primary" onClick={() => setCreating(true)}>
