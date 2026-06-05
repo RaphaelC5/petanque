@@ -43,7 +43,7 @@ mapNames('🏄', ['tim', 'timothée', 'la dimode', 'dimode']); // surfeur
 mapNames('🦀', ['tom', 'tomich']); // crabe
 mapNames('⛷️', ['dam', 'damyenks', 'damien']); // skieur
 mapNames('👨‍❤️‍👨', ['jean', 'dylan brocher', 'jeannot', 'charlie', 'charlot']); // couple gay
-mapNames('🫃', ['sauti', 'hugo', 'sautarel']); // homme enceinte
+mapNames('🥘', ['sauti', 'hugo', 'sautarel']); // poêlée de nourriture
 mapNames('🍺', ['thib', 'thibaut', 'thibault']); // bière
 mapNames('🧑‍🦲', ['cyril', 'cissou']); // crâne rasé
 mapNames('⚽', ['leo', 'leopold', 'bach']); // ballon de foot
