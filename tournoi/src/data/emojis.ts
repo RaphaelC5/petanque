@@ -10,9 +10,8 @@
  * roi, ski, « appelle-moi », robot…).
  */
 export const BASE_AVATARS: string[] = [
-  '🧔', '👩', '👨‍🦰', '🧑', '👵', '👴', '🧑‍🦱', '👱', '🤠', '🧓', '👲', '🙋',
   '🍺', '🧑‍🦲', '🫃', '👶', '🎒', '⚽', '🏋️', '🏄', '🕳️', '🦀', '🐑', '🤡',
-  '👨‍❤️‍👨', '🤴', '🎿', '🤙', '🤖',
+  '👴', '👨‍❤️‍👨', '🤴', '🎿', '🤙', '🤖', '🎹',
 ];
 
 /** Bibliothèque complète, groupée par thème (ouverte via « Modifier l'avatar »). */

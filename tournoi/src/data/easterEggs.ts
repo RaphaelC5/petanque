@@ -36,7 +36,7 @@ const mapNames = (emoji: string, names: string[]) => {
   for (const n of names) AVATAR_BY_NAME[normName(n)] = emoji;
 };
 
-mapNames('🏋️', ['piano', 'pians', 'yannick', 'yan']); // muscu
+mapNames('🎹', ['piano', 'pians', 'yannick', 'yan']); // piano
 mapNames('🎒', ['adri', 'serres', 'serinho', 'serri', 'seri', 'serino']); // cartable
 mapNames('🕳️', ['cam', 'camille', 'cam v']); // le trou
 mapNames('🏄', ['tim', 'timothée', 'la dimode', 'dimode']); // surfeur
@@ -45,11 +45,11 @@ mapNames('⛷️', ['dam', 'damyenks', 'damien']); // skieur
 mapNames('👨‍❤️‍👨', ['jean', 'dylan brocher', 'jeannot', 'charlie', 'charlot']); // couple gay
 mapNames('🫃', ['sauti', 'hugo', 'sautarel']); // homme enceinte
 mapNames('🍺', ['thib', 'thibaut', 'thibault']); // bière
-mapNames('🤡', ['cyril', 'cissou']); // clown
+mapNames('🧑‍🦲', ['cyril', 'cissou']); // crâne rasé
 mapNames('⚽', ['leo', 'leopold', 'bach']); // ballon de foot
 mapNames('🤖', ['gab', 'gaby', 'gabs']); // tête de robot
 mapNames('🤙', ['pierre', 'pierro', 'la bourgne', 'bourgnou']); // appelle-moi
-mapNames('🤴', ['raph', 'rafa', 'raphael', 'rafiki']); // roi
+mapNames('🐑', ['raph', 'rafa', 'raphael', 'rafiki']); // mouton
 
 /** Emoji à appliquer d'office pour ce prénom, ou null si aucun. */
 export function avatarForName(nom: string): string | null {

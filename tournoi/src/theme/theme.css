@@ -1161,3 +1161,50 @@ select:focus {
   border-color: var(--bleu, #0a6ca8);
   background: #fff;
 }
+
+/* ----- Tuto d'accueil (onboarding) ----- */
+.modal.onboarding {
+  width: min(440px, 100%);
+  text-align: center;
+}
+.onboarding-step-counter {
+  font-weight: 800;
+  font-size: 0.85rem;
+  color: var(--bleu, #0a6ca8);
+  letter-spacing: 0.05em;
+  margin-bottom: 0.25rem;
+}
+.onboarding-body {
+  padding: 0.5rem 0 0.75rem;
+}
+.onboarding-emoji {
+  font-size: 3.4rem;
+  line-height: 1;
+  margin-bottom: 0.5rem;
+}
+.onboarding-title {
+  margin: 0.25rem 0 0.5rem;
+  font-size: 1.35rem;
+}
+.onboarding-text {
+  margin: 0;
+  color: #555;
+  line-height: 1.45;
+}
+.onboarding-dots {
+  display: flex;
+  justify-content: center;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+}
+.onboarding-dot {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+  background: #d8d8d8;
+  transition: background 0.2s, transform 0.2s;
+}
+.onboarding-dot.active {
+  background: var(--bleu, #0a6ca8);
+  transform: scale(1.25);
+}

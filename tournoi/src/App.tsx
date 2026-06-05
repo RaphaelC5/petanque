@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { AnimatePresence } from 'framer-motion';
 import { useStore } from './state/store';
 import { importFromFile } from './storage/persistence';
 import { HomeView } from './components/views/HomeView';
@@ -6,9 +7,13 @@ import { PlayersView } from './components/views/PlayersView';
 import { ConstitutionView } from './components/views/ConstitutionView';
 import { DashboardView } from './components/views/DashboardView';
 import { Toast } from './components/common';
-import { MiniChat } from './social/MiniChat';
+// Chat masqué pour le moment (code conservé) :
+// import { MiniChat } from './social/MiniChat';
 import { TerrainMapButton } from './components/TerrainMapButton';
 import { GlobalRankingPanel } from './components/GlobalRankingPanel';
+import { OnboardingTutorial } from './components/OnboardingTutorial';
+
+const ONBOARDING_KEY = 'olympiades.onboarding.seen';
 
 export type View =
   | { name: 'home' }
@@ -23,7 +28,24 @@ export function App() {
   const [rankOpen, setRankOpen] = useState(() =>
     typeof window === 'undefined' ? true : window.innerWidth > 1100,
   );
+  const [showOnboarding, setShowOnboarding] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    try {
+      return !window.localStorage.getItem(ONBOARDING_KEY);
+    } catch {
+      return false;
+    }
+  });
   const fileInput = useRef<HTMLInputElement>(null);
+
+  const closeOnboarding = () => {
+    setShowOnboarding(false);
+    try {
+      window.localStorage.setItem(ONBOARDING_KEY, '1');
+    } catch {
+      /* stockage indisponible : on n'affiche pas en boucle dans la session */
+    }
+  };
 
   // Décale le contenu quand le rail du classement est ouvert (grands écrans).
   useEffect(() => {
@@ -58,8 +80,8 @@ export function App() {
         <div className="brand" onClick={() => setView({ name: 'home' })}>
           <span className="logo">🌞</span>
           <div>
-            <div className="title">Semaine des Copains</div>
-            <div className="subtitle">Marseille · Tournois de pétanque</div>
+            <div className="title">Marseille</div>
+            <div className="subtitle">Olympiades</div>
           </div>
         </div>
         <div className="spacer" />
@@ -111,7 +133,10 @@ export function App() {
       <GlobalRankingPanel open={rankOpen} setOpen={setRankOpen} flash={flash} />
       <Toast message={toast} />
       <TerrainMapButton />
-      <MiniChat />
+      {/* Chat masqué pour le moment (code conservé) : <MiniChat /> */}
+      <AnimatePresence>
+        {showOnboarding && <OnboardingTutorial onClose={closeOnboarding} />}
+      </AnimatePresence>
     </>
   );
 }

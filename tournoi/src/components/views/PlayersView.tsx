@@ -117,7 +117,7 @@ export function PlayersView({ flash }: { flash: (m: string) => void }) {
           <div className="row between">
             <label>Avatar <span style={{ fontSize: '1.3rem' }}>{emoji}</span></label>
             <button className="btn btn-sm btn-ghost" onClick={() => setPickerOpen(true)}>
-              😀 Modifier l'avatar
+              ➕ d'avatars
             </button>
           </div>
           <div className="chips">
