@@ -6,11 +6,16 @@ export function TerrainMapButton() {
 
   return (
     <>
-      <button className="terrain-fab" onClick={() => setOpen(true)}>
+      <button
+        className="terrain-fab"
+        onClick={() => setOpen(true)}
+        aria-label="Recherche d'un terrain"
+        title="Recherche d'un terrain"
+      >
         <span className="terrain-fab-icon" aria-hidden>
           🗺️
         </span>
-        Recherche d'un terrain
+        <span className="terrain-fab-label">Recherche d'un terrain</span>
       </button>
 
       <AnimatePresence>

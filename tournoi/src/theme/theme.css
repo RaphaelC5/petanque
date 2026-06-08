@@ -929,9 +929,19 @@ select:focus {
 }
 
 @media (max-width: 520px) {
+  /* Sur mobile : bouton rond, juste l'emoji (pas le libellé). */
   .terrain-fab {
-    font-size: 0.85rem;
-    padding: 0.6rem 0.85rem;
+    width: 52px;
+    height: 52px;
+    padding: 0;
+    gap: 0;
+    justify-content: center;
+  }
+  .terrain-fab-label {
+    display: none;
+  }
+  .terrain-fab-icon {
+    font-size: 1.55rem;
   }
 }
 
@@ -991,6 +1001,13 @@ select:focus {
 @media (min-width: 1101px) {
   body[data-rank='open'] .container {
     padding-left: 300px;
+  }
+}
+/* Sur mobile/tablette : l'onglet replié du classement est en bord gauche ;
+   on décale légèrement le contenu pour qu'il n'empiète pas sur les blocs. */
+@media (max-width: 1100px) {
+  body[data-rank='closed'] .container {
+    padding-left: calc(clamp(1rem, 3vw, 2rem) + 30px);
   }
 }
 

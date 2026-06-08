@@ -29,7 +29,10 @@ export function ScoreModal({
   const [b, setB] = useState(match.scoreB ?? 0);
 
   const clamp = (n: number) => Math.max(0, Math.min(pointsCible, n));
-  const valid = a !== b;
+  // Le match n'est terminé que lorsqu'une équipe atteint le score cible
+  // (ex. 13 en pétanque) et qu'il y a bien un vainqueur (pas d'égalité).
+  const atteint = Math.max(a, b) >= pointsCible;
+  const valid = a !== b && atteint;
 
   const Stepper = ({
     value,
@@ -50,7 +53,7 @@ export function ScoreModal({
 
   return (
     <Modal title="✏️ Saisie du score" onClose={onClose}>
-      <p className="muted">Partie en {pointsCible} points. Tu peux clôturer avant {pointsCible} si besoin.</p>
+      <p className="muted">Partie en {pointsCible} points. Le match se termine quand une équipe atteint {pointsCible}.</p>
       <div className="score-editor">
         {[{ team: teamA, val: a, set: setA }, { team: teamB, val: b, set: setB }].map(
           (s, idx) => (
@@ -72,9 +75,14 @@ export function ScoreModal({
         )}
       </div>
 
-      {!valid && (
+      {a === b && (
         <p className="badge-desequilibre" style={{ textAlign: 'center' }}>
-          ⚠️ Un vainqueur est obligatoire (pas d'égalité en pétanque).
+          ⚠️ Un vainqueur est obligatoire (pas d'égalité).
+        </p>
+      )}
+      {a !== b && !atteint && (
+        <p className="badge-desequilibre" style={{ textAlign: 'center' }}>
+          ⚠️ Une équipe doit atteindre {pointsCible} points pour clôturer le match.
         </p>
       )}
 
