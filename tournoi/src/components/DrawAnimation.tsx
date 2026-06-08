@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { roleMeta } from '../engine/game';
 import { teamSizeLabel } from '../engine/teams';
-import { isDam } from '../data/easterEggs';
 import { Confetti, EditableTeamName } from './common';
 import type { Player, Team } from '../types';
 
@@ -195,10 +194,6 @@ export function DrawAnimation({
               {team.desequilibree && finished && (
                 <div className="badge-desequilibre">⚠️ équipe déséquilibrée</div>
               )}
-              {finished &&
-                team.playerIds.some((pid) => isDam(byId.get(pid)?.nom ?? '')) && (
-                  <div className="badge-desequilibre">😬 Ouh dommage avec Damyenks</div>
-                )}
             </motion.div>
           );
         })}
