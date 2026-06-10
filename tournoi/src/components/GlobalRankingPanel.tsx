@@ -5,6 +5,7 @@ import { roleMeta } from '../engine/game';
 import { useStore } from '../state/store';
 import { QuickMatchModal } from './QuickMatchModal';
 import { QuickMatchesModal } from './QuickMatchesModal';
+import { PendingMatchesModal } from './PendingMatchesModal';
 import type { QuickMatch } from '../types';
 
 const MEDALS = ['🥇', '🥈', '🥉'];
@@ -25,10 +26,13 @@ export function GlobalRankingPanel({
   const { state } = useStore();
   const [adding, setAdding] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [pendingOpen, setPendingOpen] = useState(false);
   const [editing, setEditing] = useState<QuickMatch | null>(null);
 
   const rows = computeGlobalRanking(state);
-  const nbMatches = state.quickMatches?.length ?? 0;
+  const allMatches = state.quickMatches ?? [];
+  const nbPending = allMatches.filter((m) => m.validated === false).length;
+  const nbMatches = allMatches.length - nbPending;
 
   return (
     <>
@@ -71,6 +75,14 @@ export function GlobalRankingPanel({
             >
               ➕ Ajouter un match
             </button>
+            {nbPending > 0 && (
+              <button
+                className="btn btn-sm global-ranking-add global-ranking-pending"
+                onClick={() => setPendingOpen(true)}
+              >
+                ⏳ Valider les matchs en attente ({nbPending})
+              </button>
+            )}
             {nbMatches > 0 && (
               <button
                 className="btn btn-ghost btn-sm global-ranking-add"
@@ -118,6 +130,16 @@ export function GlobalRankingPanel({
             onClose={() => setHistoryOpen(false)}
             onEdit={(m) => {
               setHistoryOpen(false);
+              setEditing(m);
+            }}
+            flash={flash}
+          />
+        )}
+        {pendingOpen && (
+          <PendingMatchesModal
+            onClose={() => setPendingOpen(false)}
+            onEdit={(m) => {
+              setPendingOpen(false);
               setEditing(m);
             }}
             flash={flash}

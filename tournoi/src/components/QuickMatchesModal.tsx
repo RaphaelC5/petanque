@@ -32,7 +32,10 @@ export function QuickMatchesModal({
     [state.players],
   );
   const matches = useMemo(
-    () => [...(state.quickMatches ?? [])].sort((a, b) => b.createdAt - a.createdAt),
+    () =>
+      [...(state.quickMatches ?? [])]
+        .filter((m) => m.validated !== false) // les « en attente » ont leur propre vue
+        .sort((a, b) => b.createdAt - a.createdAt),
     [state.quickMatches],
   );
 

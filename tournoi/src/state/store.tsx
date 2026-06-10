@@ -26,6 +26,7 @@ type Action =
   | { type: 'addQuickMatch'; match: QuickMatch }
   | { type: 'updateQuickMatch'; match: QuickMatch }
   | { type: 'removeQuickMatch'; id: string }
+  | { type: 'validatePendingQuickMatches' }
   | { type: 'replaceState'; state: AppState };
 
 function reducer(state: AppState, action: Action): AppState {
@@ -77,6 +78,13 @@ function reducer(state: AppState, action: Action): AppState {
         ...state,
         quickMatches: (state.quickMatches ?? []).filter((m) => m.id !== action.id),
       };
+    case 'validatePendingQuickMatches':
+      return {
+        ...state,
+        quickMatches: (state.quickMatches ?? []).map((m) =>
+          m.validated === false ? { ...m, validated: true } : m,
+        ),
+      };
     case 'replaceState':
       return action.state;
     default:
@@ -94,6 +102,7 @@ interface Ctx {
   addQuickMatch: (m: QuickMatch) => void;
   updateQuickMatch: (m: QuickMatch) => void;
   removeQuickMatch: (id: string) => void;
+  validatePendingQuickMatches: () => void;
   replaceState: (s: AppState) => void;
   exportData: () => void;
 }
@@ -177,6 +186,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     addQuickMatch: (match) => dispatch({ type: 'addQuickMatch', match }),
     updateQuickMatch: (match) => dispatch({ type: 'updateQuickMatch', match }),
     removeQuickMatch: (id) => dispatch({ type: 'removeQuickMatch', id }),
+    validatePendingQuickMatches: () =>
+      dispatch({ type: 'validatePendingQuickMatches' }),
     replaceState: (s) => dispatch({ type: 'replaceState', state: s }),
     exportData: () => exportToFile(state),
   };

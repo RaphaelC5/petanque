@@ -973,6 +973,16 @@ select:focus {
   justify-content: center;
   margin-bottom: 0.6rem;
 }
+/* Bouton « matchs en attente » : bien visible (ambre). */
+.global-ranking-pending {
+  background: #fff3d6;
+  border: 2px solid var(--ocre);
+  color: var(--encre);
+  font-weight: 700;
+}
+.global-ranking-pending:hover {
+  filter: brightness(0.98);
+}
 .global-ranking-list {
   display: flex;
   flex-direction: column;

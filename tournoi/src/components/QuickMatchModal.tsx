@@ -76,13 +76,16 @@ export function QuickMatchModal({
       scoreB: b,
       createdAt: existing?.createdAt ?? Date.now(),
       label: label.trim() || undefined,
+      // Un nouveau match part « en attente » : il faut le code admin pour qu'il
+      // compte dans le classement. À l'édition, on conserve l'état existant.
+      validated: existing ? existing.validated : false,
     };
     if (existing) {
       updateQuickMatch(match);
-      flash('Match modifié ✅ classement mis à jour');
+      flash('Match modifié ✅');
     } else {
       addQuickMatch(match);
-      flash('Match enregistré ✅ classement mis à jour');
+      flash('Match enregistré ⏳ en attente de validation admin');
     }
     onClose();
   };

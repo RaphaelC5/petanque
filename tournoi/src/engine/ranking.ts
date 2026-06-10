@@ -154,6 +154,7 @@ export function computeGlobalRanking(state: AppState): PlayerRankingRow[] {
   }
 
   for (const q of state.quickMatches ?? []) {
+    if (q.validated === false) continue; // en attente de validation admin
     if (q.scoreA === q.scoreB) continue; // pas de match nul
     tally(ensure, q.sideAPlayerIds, q.sideBPlayerIds, q.scoreA, q.scoreB);
   }

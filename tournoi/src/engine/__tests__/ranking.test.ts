@@ -99,6 +99,30 @@ describe('computeGlobalRanking', () => {
   it('liste vide quand aucun match joué', () => {
     expect(computeGlobalRanking(baseState({}))).toHaveLength(0);
   });
+
+  it('ignore les matchs amicaux en attente de validation', () => {
+    const state = baseState({
+      quickMatches: [
+        // en attente (validated === false) → ne compte pas
+        { id: 'q1', sideAPlayerIds: ['p1'], sideBPlayerIds: ['p3'], scoreA: 13, scoreB: 4, createdAt: 0, validated: false },
+      ],
+    });
+    expect(computeGlobalRanking(state)).toHaveLength(0);
+  });
+
+  it('compte les matchs amicaux validés (validated true ou absent)', () => {
+    const state = baseState({
+      quickMatches: [
+        { id: 'q1', sideAPlayerIds: ['p1'], sideBPlayerIds: ['p3'], scoreA: 13, scoreB: 4, createdAt: 0, validated: true },
+        // ancien enregistrement sans le champ → considéré validé
+        { id: 'q2', sideAPlayerIds: ['p1'], sideBPlayerIds: ['p3'], scoreA: 13, scoreB: 7, createdAt: 1 },
+      ],
+    });
+    const ranking = computeGlobalRanking(state);
+    const alice = ranking.find((r) => r.playerId === 'p1')!;
+    expect(alice.points).toBe(2 * POINTS_VICTOIRE);
+    expect(alice.matchsJoues).toBe(2);
+  });
 });
 
 describe('closeMatch — règles pétanque', () => {

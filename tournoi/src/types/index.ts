@@ -117,6 +117,12 @@ export interface QuickMatch {
   scoreB: number;
   createdAt: number;
   label?: string;
+  /**
+   * Validé par un admin (code requis) avant de compter dans le classement
+   * général. `undefined` = ancien enregistrement → considéré validé pour ne
+   * pas casser l'historique. `false` = en attente de validation.
+   */
+  validated?: boolean;
 }
 
 export interface AppState {
