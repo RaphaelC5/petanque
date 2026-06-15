@@ -5,7 +5,8 @@ import { gameDisplay } from '../../engine/game';
 import { teamSizeLabel, teamTarget } from '../../engine/teams';
 import { CreateTournamentModal } from '../CreateTournamentModal';
 import { tournamentWinner } from '../../engine/tournament';
-import { ChambrageFeed } from '../../social/ChambrageFeed';
+// Photos de chambrage masquées pour le moment (code conservé) :
+// import { ChambrageFeed } from '../../social/ChambrageFeed';
 import type { View } from '../../App';
 
 const MODE_LABEL: Record<string, string> = {
@@ -128,7 +129,9 @@ export function HomeView({
         </div>
       )}
 
-      <ChambrageFeed flash={flash} />
+      {/* Photos de chambrage masquées pour le moment (code conservé) :
+          « 📸 Si tu vois Cam faire un traouc… »
+      <ChambrageFeed flash={flash} /> */}
 
       <AnimatePresence>
         {creating && (
