@@ -25,6 +25,19 @@ export function isDam(nom: string): boolean {
   return ['dam', 'damien', 'damyenks'].includes(normName(nom));
 }
 
+/**
+ * La Carade : ces prénoms ne peuvent jouer que « tireur ».
+ * ⚠️ Sensible aux accents (contrairement aux autres clins d'œil) : « raphael »
+ * est imposé tireur, mais « raphaël » (avec ë) garde le choix libre.
+ */
+const TIREUR_ONLY = new Set(['raf', 'rafa', 'lacarade', 'lacarade5', 'raph', 'raphael']);
+export function isTireurOnly(nom: string): boolean {
+  // On garde les accents (NFC) : on minuscule et on rogne juste les espaces.
+  const n = nom.normalize('NFC').toLowerCase().trim();
+  if (n === 'raphaël') return false; // exception : choix de rôle libre
+  return TIREUR_ONLY.has(n);
+}
+
 // ---------------------------------------------------------------------------
 // Avatar « d'office » selon le prénom (la casse et les accents ne comptent pas).
 // Dès qu'un de ces noms est tapé, on applique l'emoji correspondant — modifiable

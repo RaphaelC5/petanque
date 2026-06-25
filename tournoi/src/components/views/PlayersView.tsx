@@ -6,7 +6,7 @@ import { uid } from '../../engine/util';
 import { Modal, RoleBadge } from '../common';
 import { EmojiPicker } from '../EmojiPicker';
 import { BASE_AVATARS } from '../../data/emojis';
-import { avatarForName, isCam, isCommeIlPeut } from '../../data/easterEggs';
+import { avatarForName, isCam, isCommeIlPeut, isTireurOnly } from '../../data/easterEggs';
 import type { Player, Role } from '../../types';
 
 const DEFAULT_EMOJI = BASE_AVATARS[0];
@@ -25,7 +25,9 @@ export function PlayersView({ flash }: { flash: (m: string) => void }) {
 
   // « Comme il peut » : pour certains, pas de rôle assumé — tout est mixte.
   const commeIlPeut = isCommeIlPeut(nom);
-  const effectiveRole: Role = commeIlPeut ? 'mixte' : role;
+  // La Carade : imposé tireur (sauf « raphaël » avec ë, qui a le choix libre).
+  const tireurOnly = isTireurOnly(nom);
+  const effectiveRole: Role = tireurOnly ? 'tireur' : commeIlPeut ? 'mixte' : role;
 
   const pickRole = (r: Role) => {
     setRole(r);
@@ -97,6 +99,19 @@ export function PlayersView({ flash }: { flash: (m: string) => void }) {
           {commeIlPeut ? (
             <div className="chips">
               <button className="chip selected">🤷 comme il peut</button>
+            </div>
+          ) : tireurOnly ? (
+            <div className="chips">
+              {PETANQUE.roles
+                .filter((r) => r.value === 'tireur')
+                .map((r) => (
+                  <button key={r.value} className="chip selected">
+                    {r.emoji} {r.label}
+                  </button>
+                ))}
+              <span className="muted" style={{ fontSize: '0.78rem', alignSelf: 'center' }}>
+                (imposé)
+              </span>
             </div>
           ) : (
             <div className="chips">
